@@ -136,7 +136,6 @@ public class DNPakTool {
                         header.getMagic(),
                         header.getNumFiles(),
                         header.getFileTableOffset());
-                PakFileReader.insert("mapdata\\grid\\tn_aa\\foo\\bar.ini", null, null);
             } catch (IOException e) {
                 System.out.println("Error reading: " + e.toString());
                 e.printStackTrace();
