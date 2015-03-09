@@ -26,11 +26,14 @@ package co.phoenixlab.dn.pak;
 
 public class FileEntry extends Entry {
 
-    public FileEntry(String name, Entry parent) {
+    private final FileInfo fileInfo;
+
+    public FileEntry(String name, Entry parent, FileInfo fileInfo) {
         super(name, parent);
+        this.fileInfo = fileInfo;
     }
 
-
-
-
+    public FileInfo getFileInfo() {
+        return fileInfo;
+    }
 }
