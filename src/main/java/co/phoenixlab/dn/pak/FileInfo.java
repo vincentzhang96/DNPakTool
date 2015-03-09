@@ -54,6 +54,7 @@ public class FileInfo {
         compressedSize = readUint32(randomAccessFile);
         diskOffset = readUint32(randomAccessFile);
         unknown = reverseBytes(randomAccessFile.readInt());
+        randomAccessFile.skipBytes(NUL_PADDING_SIZE);
         return this;
     }
 
