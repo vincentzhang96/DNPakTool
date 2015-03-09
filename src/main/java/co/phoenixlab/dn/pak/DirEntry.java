@@ -29,9 +29,13 @@ import java.util.Map;
 
 public class DirEntry extends Entry {
 
-    public final Map<String, Entry> children = new HashMap<>();
+    private final Map<String, Entry> children = new HashMap<>();
 
     public DirEntry(String name, Entry parent) {
         super(name, parent);
+    }
+
+    public Map<String, Entry> getChildren() {
+        return children;
     }
 }

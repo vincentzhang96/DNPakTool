@@ -53,16 +53,20 @@ public class PakFileReader implements AutoCloseable {
         }
         randomAccessFile = new RandomAccessFile(path.toFile(), "r");
         header.read(randomAccessFile);
-
+        randomAccessFile.seek(header.getFileTableOffset());
+        for (long l = 0; l < header.numFiles; ++l) {
+            FileInfo fileInfo = new FileInfo().load(randomAccessFile);
+            insert(fileInfo.getFullPath(), root, fileInfo);
+        }
     }
 
-    public static void insert(String path, DirEntry parent, FileEntry fileEntry) throws IllegalArgumentException {
+    public static void insert(String path, DirEntry parent, FileInfo fileInfo) throws IllegalArgumentException {
         String[] strs = path.split("\\\\", 2);
         if (strs.length == 1) {
-            parent.children.put(fileEntry.name, fileEntry);
+            parent.getChildren().put(strs[0], new FileEntry(fileInfo.getFileName(), parent, fileInfo));
             return;
         }
-        Entry newEntry = parent.children.get(strs[0]);
+        Entry newEntry = parent.getChildren().get(strs[0]);
         DirEntry dirEntry;
         if (newEntry instanceof DirEntry) {
             dirEntry = (DirEntry)newEntry;
@@ -70,10 +74,10 @@ public class PakFileReader implements AutoCloseable {
             throw new IllegalArgumentException("Cannot replace an existing file with a directory");
         } else {
             dirEntry = new DirEntry(strs[0], parent);
-            parent.children.put(strs[0], dirEntry);
+            parent.getChildren().put(strs[0], dirEntry);
         }
-        parent.children.put(strs[0], newEntry);
-        insert(strs[1], dirEntry, fileEntry);
+        parent.getChildren().put(strs[0], newEntry);
+        insert(strs[1], dirEntry, fileInfo);
     }
 
     public PakHeader getHeader() {
