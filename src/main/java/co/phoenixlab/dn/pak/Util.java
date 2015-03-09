@@ -26,8 +26,12 @@ package co.phoenixlab.dn.pak;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 
 public class Util {
+
+    private Util() {
+    }
 
     public static String readNulTerminatedStr(DataInput dataIn) throws IOException {
         StringBuilder builder = new StringBuilder();
@@ -36,6 +40,21 @@ public class Util {
             builder.append((char) i);
         }
         return builder.toString();
+    }
+
+    public static String readNulTerminatedStr(byte[] data) {
+        StringBuilder builder = new StringBuilder();
+        int i;
+        int j = 0;
+        while((i = data[j]) > 0) {
+            builder.append((char) i);
+            ++j;
+        }
+        return builder.toString();
+    }
+
+    public static long readUint32(RandomAccessFile randomAccessFile) throws IOException {
+        return Integer.toUnsignedLong(reverseBytes(randomAccessFile.readInt()));
     }
 
     public static int reverseBytes(int i) {

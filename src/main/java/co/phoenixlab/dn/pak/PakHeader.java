@@ -51,11 +51,11 @@ public class PakHeader {
             if (unknown != UNKNOWN_CONST) {
                 throw new InvalidPakException("Unknown Const does not match");
             }
-            numFiles = Integer.toUnsignedLong(reverseBytes(randomAccessFile.readInt()));
+            numFiles = readUint32(randomAccessFile);
             if (numFiles < 0L || numFiles > 0xFFFFFFFFL) {
                 throw new InvalidPakException("Invalid number of files");
             }
-            fileTableOffset = Integer.toUnsignedLong(reverseBytes(randomAccessFile.readInt()));
+            fileTableOffset = readUint32(randomAccessFile);
             if (numFiles < 0x400L || numFiles > 0xFFFFFFFFL) {
                 throw new InvalidPakException("Invalid file table offset");
             }
