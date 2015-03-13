@@ -25,7 +25,6 @@
 package co.phoenixlab.dn;
 
 import co.phoenixlab.dn.pak.PakFileReader;
-import co.phoenixlab.dn.pak.PakHeader;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -131,11 +130,7 @@ public class DNPakTool {
             System.out.println(path.toString());
             try (PakFileReader reader = new PakFileReader(path)) {
                 reader.load();
-                PakHeader header = reader.getHeader();
-                System.out.printf("%s: 0x%08X 0x%08X\n",
-                        header.getMagic(),
-                        header.getNumFiles(),
-                        header.getFileTableOffset());
+                System.out.printf("Read %d files\n", reader.getNumFilesRead());
             } catch (IOException e) {
                 System.out.println("Error reading: " + e.toString());
                 e.printStackTrace();

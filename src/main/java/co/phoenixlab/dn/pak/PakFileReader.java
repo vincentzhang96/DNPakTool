@@ -35,6 +35,7 @@ public class PakFileReader implements AutoCloseable {
     private PakHeader header;
     private DirEntry root;
     private Path path;
+    private int numFilesRead;
     RandomAccessFile randomAccessFile;
 
     public PakFileReader(Path path) {
@@ -44,6 +45,7 @@ public class PakFileReader implements AutoCloseable {
     }
 
     public void load() throws IOException {
+        numFilesRead = 0;
         if (Files.notExists(path)) {
             throw new FileNotFoundException("The file does not exist: " + path.toString());
         }
@@ -57,6 +59,7 @@ public class PakFileReader implements AutoCloseable {
         for (long l = 0; l < header.numFiles; ++l) {
             FileInfo fileInfo = new FileInfo().load(randomAccessFile);
             insert(fileInfo.getFullPath(), root, fileInfo);
+            ++numFilesRead;
         }
     }
 
@@ -90,6 +93,10 @@ public class PakFileReader implements AutoCloseable {
 
     public Path getPath() {
         return path;
+    }
+
+    public int getNumFilesRead() {
+        return numFilesRead;
     }
 
     @Override
