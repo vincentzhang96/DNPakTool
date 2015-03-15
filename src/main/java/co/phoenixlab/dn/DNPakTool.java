@@ -30,6 +30,8 @@ import co.phoenixlab.dn.pak.FileEntry;
 import co.phoenixlab.dn.pak.PakFileReader;
 
 import java.io.IOException;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPOutputStream;
 
 public class DNPakTool {
 
@@ -98,10 +101,18 @@ public class DNPakTool {
             case "ls":
                 ls(args);
                 break;
-
-
+            case "find":
+                find(args);
+                break;
+            case "dump":
+                dump(args);
+                break;
+            case "pack":
+                pack(args);
+                break;
+            default:
+                System.out.println("Unknown command. Try \"help\" for a list of a commands");
         }
-
     }
 
     private static void printHelp() {
@@ -305,7 +316,7 @@ public class DNPakTool {
             System.out.printf("Read %d files\n", reader.getNumFilesRead());
             Files.createDirectories(dest);
             dumpDir(reader.getRoot(), dest, reader);
-            System.out.printf("Files dumped");
+            System.out.println("Files dumped");
         } catch (IOException e) {
             System.out.println("Error dumping: " + e.toString());
             e.printStackTrace();
@@ -326,7 +337,11 @@ public class DNPakTool {
     }
 
     private static void dumpFile(FileEntry fileEntry, Path path, PakFileReader reader) throws IOException {
-
+        try (GZIPOutputStream outputStream = new GZIPOutputStream(Files.newOutputStream(path,
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
+            WritableByteChannel byteChannel = Channels.newChannel(outputStream);
+            reader.transferTo(fileEntry.getFileInfo(), byteChannel);
+        }
     }
 
     private static void pack(String[] args) {
