@@ -30,8 +30,8 @@ import co.phoenixlab.dn.pak.FileEntry;
 import co.phoenixlab.dn.pak.PakFileReader;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -220,6 +220,97 @@ public class DNPakTool {
             System.out.println("Usage: dump [-ds] [-fr string] src dest; see help");
             return;
         }
+        boolean delete = false,
+                suppress = false,
+                find = false,
+                regex = false;
+        String patternArg = null;
+        String srcArg = null;
+        String dstArg = null;
+        for (String s : args) {
+            if (s.startsWith("-")) {
+                s = s.substring(1);
+                for (char c : s.toCharArray()) {
+                    switch (c) {
+                        case 's':
+                            suppress = true;
+                            //  FALL THROUGH
+                        case 'd':
+                            delete = true;
+                            break;
+                        case 'r':
+                            regex = true;
+                            //  FALL THROUGH
+                        case 'f':
+                            find = true;
+                    }
+                }
+            } else if (find && patternArg == null) {
+                patternArg = s;
+            } else if (srcArg == null) {
+                srcArg = s;
+            } else if (dstArg == null) {
+                dstArg = s;
+            }
+        }
+        if (srcArg == null || dstArg == null || (find && patternArg == null)) {
+            System.out.println("Usage: dump [-ds] [-fr string] src dest; see help");
+            return;
+        }
+        Path source = Paths.get(srcArg);
+        Path dest = Paths.get(dstArg).toAbsolutePath().normalize();
+        if (delete) {
+            if (Files.isDirectory(dest)) {
+                if (!suppress) {
+                    System.out.println("Are you sure you wish to delete the directory " +
+                            dest.toString() + " and all of its children? (yes/no)");
+                    String resp = new Scanner(System.in).nextLine();
+                    if (!"yes".equalsIgnoreCase(resp)) {
+                        System.out.println("Operation cancelled");
+                        return;
+                    }
+                }
+                try {
+                    Files.walkFileTree(dest, new FileVisitor<Path>() {
+                        @Override
+                        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                            return FileVisitResult.CONTINUE;
+                        }
+
+                        @Override
+                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                            Files.delete(file);
+                            return FileVisitResult.CONTINUE;
+                        }
+
+                        @Override
+                        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                            return FileVisitResult.TERMINATE;
+                        }
+
+                        @Override
+                        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                            Files.delete(dir);
+                            return FileVisitResult.CONTINUE;
+                        }
+                    });
+                } catch (IOException e) {
+                    System.out.println("Unable to clean output directory");
+                }
+            }
+        }
+        System.out.println("Dumping " + source.toString() + " into " + dest.toString());
+        try (PakFileReader reader = new PakFileReader(source)) {
+            reader.load();
+            System.out.printf("Read %d files\n", reader.getNumFilesRead());
+
+
+        } catch (IOException e) {
+            System.out.println("Error dumping: " + e.toString());
+            e.printStackTrace();
+        }
+
+
 
     }
 
