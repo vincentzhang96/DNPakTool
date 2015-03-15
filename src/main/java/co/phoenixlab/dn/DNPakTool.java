@@ -73,7 +73,10 @@ public class DNPakTool {
         Matcher matcher = TOKENIZE.matcher(s);
         while (matcher.find()) {
             String s1 = matcher.group();
-            list.add(s1.substring(1, s1.length() - 1));
+            if (s1.startsWith("\"") && s1.endsWith("\"")) {
+                s1 = s1.substring(1, s1.length() - 1);
+            }
+            list.add(s1);
         }
         return list.toArray(new String[list.size()]);
     }
