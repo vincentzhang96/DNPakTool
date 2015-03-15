@@ -27,6 +27,8 @@ package co.phoenixlab.dn.pak;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -98,6 +100,18 @@ public class PakFileReader implements AutoCloseable {
 
     public int getNumFilesRead() {
         return numFilesRead;
+    }
+
+    public FileChannel getFileChannel(FileInfo fileInfo) throws IOException {
+        FileChannel fileChannel = randomAccessFile.getChannel();
+        fileChannel.position(fileInfo.getDiskOffset());
+        return fileChannel;
+    }
+
+    public void transferTo(FileInfo fileInfo, WritableByteChannel target) throws IOException {
+        try (FileChannel fileChannel = getFileChannel(fileInfo)) {
+            fileChannel.transferTo(fileInfo.getDiskOffset(), fileInfo.getDiskSize(), target);
+        }
     }
 
     @Override
