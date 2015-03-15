@@ -140,7 +140,7 @@ public class DNPakTool {
             try (PakFileReader reader = new PakFileReader(path)) {
                 reader.load();
                 System.out.printf("Read %d files\n", reader.getNumFilesRead());
-                printTree(reader);
+                printDirectory(reader.getRoot(), 0);
             } catch (IOException e) {
                 System.out.println("Error reading: " + e.toString());
                 e.printStackTrace();
@@ -148,10 +148,6 @@ public class DNPakTool {
             System.out.println("---------------");
             System.gc();
         }
-    }
-
-    private static void printTree(PakFileReader reader) {
-        printDirectory(reader.getRoot(), 0);
     }
 
     private static void printDirectory(DirEntry dirEntry, int depth) {
