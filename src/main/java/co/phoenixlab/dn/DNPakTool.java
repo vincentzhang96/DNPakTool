@@ -24,12 +24,16 @@
 
 package co.phoenixlab.dn;
 
+import co.phoenixlab.dn.pak.DirEntry;
+import co.phoenixlab.dn.pak.Entry;
+import co.phoenixlab.dn.pak.FileEntry;
 import co.phoenixlab.dn.pak.PakFileReader;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -127,18 +131,62 @@ public class DNPakTool {
             System.out.println("Usage: ls file...");
             return;
         }
+        Runtime runtime = Runtime.getRuntime();
         for (String s : args) {
+            long memstart = runtime.maxMemory() - runtime.freeMemory();
             Path path = Paths.get(s);
             System.out.println("-- FILE LIST --");
             System.out.println(path.toString());
             try (PakFileReader reader = new PakFileReader(path)) {
                 reader.load();
                 System.out.printf("Read %d files\n", reader.getNumFilesRead());
+                printTree(reader);
             } catch (IOException e) {
                 System.out.println("Error reading: " + e.toString());
                 e.printStackTrace();
             }
+            System.out.println("---------------");
+            System.gc();
         }
+    }
+
+    private static void printTree(PakFileReader reader) {
+        printDirectory(reader.getRoot(), 0);
+    }
+
+    private static void printDirectory(DirEntry dirEntry, int depth) {
+        StringBuilder builder = new StringBuilder();
+        tabs(depth, builder).append("+ ").append(dirEntry.name);
+        System.out.println(builder.toString());
+        ++depth;
+        List<DirEntry> directories = new ArrayList<>();
+        List<FileEntry> files = new ArrayList<>();
+        for (Entry entry : dirEntry.getChildren().values()) {
+            if (entry instanceof DirEntry) {
+                directories.add((DirEntry) entry);
+            } else if (entry instanceof FileEntry) {
+                files.add((FileEntry) entry);
+            }
+        }
+        Collections.sort(directories);
+        Collections.sort(files);
+        for (FileEntry fe : files) {
+            builder.setLength(0);
+            tabs(depth, builder).append("- ").append(fe.name).append("    ").
+                    append(fe.getFileInfo().getDecompressedSize());
+            System.out.println(builder.toString());
+        }
+        for (DirEntry de : directories) {
+            printDirectory(de, depth);
+        }
+    }
+
+    private static StringBuilder tabs(int depth, StringBuilder builder) {
+        int spaces = 2 * depth;
+        for (int i = 0; i < spaces; ++i) {
+            builder.append(' ');
+        }
+        return builder;
     }
 
     private static void find(String[] args) {
