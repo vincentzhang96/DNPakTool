@@ -67,6 +67,7 @@ public class PakFileReader implements AutoCloseable {
         String[] strs = path.split("\\\\", 2);
         if (strs.length == 1) {
             parent.getChildren().put(strs[0], new FileEntry(fileInfo.getFileName(), parent, fileInfo));
+//            System.err.println("Insertion at " + fileInfo.getFileName() + " w/ parent " + parent.name);
             return;
         }
         Entry newEntry = parent.getChildren().get(strs[0]);
@@ -77,9 +78,9 @@ public class PakFileReader implements AutoCloseable {
             throw new IllegalArgumentException("Cannot replace an existing file with a directory");
         } else {
             dirEntry = new DirEntry(strs[0], parent);
+//            System.err.println("Insert direntry " + strs[0] + " w/ parent " + parent.name);
             parent.getChildren().put(strs[0], dirEntry);
         }
-        parent.getChildren().put(strs[0], newEntry);
         insert(strs[1], dirEntry, fileInfo);
     }
 
