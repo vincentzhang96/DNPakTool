@@ -27,7 +27,7 @@ package co.phoenixlab.dn.pak;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DirEntry extends Entry {
+public class DirEntry extends Entry implements Comparable<DirEntry> {
 
     private final Map<String, Entry> children = new HashMap<>();
 
@@ -37,5 +37,10 @@ public class DirEntry extends Entry {
 
     public Map<String, Entry> getChildren() {
         return children;
+    }
+
+    @Override
+    public int compareTo(DirEntry o) {
+        return this.name.compareToIgnoreCase(o.name);
     }
 }

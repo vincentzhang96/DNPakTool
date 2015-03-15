@@ -24,7 +24,7 @@
 
 package co.phoenixlab.dn.pak;
 
-public class FileEntry extends Entry {
+public class FileEntry extends Entry implements Comparable<FileEntry> {
 
     private final FileInfo fileInfo;
 
@@ -35,5 +35,10 @@ public class FileEntry extends Entry {
 
     public FileInfo getFileInfo() {
         return fileInfo;
+    }
+
+    @Override
+    public int compareTo(FileEntry o) {
+        return this.name.compareToIgnoreCase(o.name);
     }
 }
