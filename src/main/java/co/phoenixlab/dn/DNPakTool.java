@@ -303,14 +303,29 @@ public class DNPakTool {
         try (PakFileReader reader = new PakFileReader(source)) {
             reader.load();
             System.out.printf("Read %d files\n", reader.getNumFilesRead());
-
-
+            Files.createDirectories(dest);
+            dumpDir(reader.getRoot(), dest, reader);
+            System.out.printf("Files dumped");
         } catch (IOException e) {
             System.out.println("Error dumping: " + e.toString());
             e.printStackTrace();
         }
+    }
 
+    private static void dumpDir(DirEntry dirEntry, Path root, PakFileReader reader) throws IOException {
+        //  It is the previous call's responsibility to create each subdirectory on the FS
+        for (Entry entry : dirEntry.getChildren().values()) {
+            Path path = root.resolve(entry.name);
+            if (entry instanceof DirEntry) {
+                Files.createDirectories(path);
+                dumpDir((DirEntry) entry, path, reader);
+            } else if (entry instanceof FileEntry) {
+                dumpFile((FileEntry) entry, path, reader);
+            }
+        }
+    }
 
+    private static void dumpFile(FileEntry fileEntry, Path path, PakFileReader reader) throws IOException {
 
     }
 
