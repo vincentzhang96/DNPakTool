@@ -75,7 +75,7 @@ public class PakFileReader implements AutoCloseable {
         Entry newEntry = parent.getChildren().get(strs[0]);
         DirEntry dirEntry;
         if (newEntry instanceof DirEntry) {
-            dirEntry = (DirEntry)newEntry;
+            dirEntry = (DirEntry) newEntry;
         } else if (newEntry != null) {
             throw new IllegalArgumentException("Cannot replace an existing file with a directory");
         } else {
@@ -109,9 +109,8 @@ public class PakFileReader implements AutoCloseable {
     }
 
     public void transferTo(FileInfo fileInfo, WritableByteChannel target) throws IOException {
-        try (FileChannel fileChannel = getFileChannel(fileInfo)) {
-            fileChannel.transferTo(fileInfo.getDiskOffset(), fileInfo.getDiskSize(), target);
-        }
+        FileChannel fileChannel = getFileChannel(fileInfo);
+        fileChannel.transferTo(fileInfo.getDiskOffset(), fileInfo.getDiskSize(), target);
     }
 
     @Override
