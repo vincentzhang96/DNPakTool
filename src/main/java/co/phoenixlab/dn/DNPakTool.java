@@ -48,6 +48,7 @@ public class DNPakTool {
     private static final String[] EMPTY_STR_ARRAY = new String[0];
 
     private static int filesDumped;
+    public static final long PRINT_INTERVAL = 500L;
 
     public static void main(String[] args) {
         if (args.length > 1) {
@@ -320,8 +321,9 @@ public class DNPakTool {
             Files.createDirectories(dest);
             filesDumped = 0;
             int fmtLen = String.format("%d", toRead).length();
-            String fmt = "Dumping... %3d%% %" + fmtLen + "d/%" + fmtLen + "d\r";
+            String fmt = "Dumping... %2$" + fmtLen + "d/%3$" + fmtLen + "d %1$3d%%\r";
             dumpDir(reader.getRoot(), dest, reader, toRead, fmt);
+            System.out.printf(fmt, 100, filesDumped, toRead);
             System.out.println("\nFiles dumped");
         } catch (IOException e) {
             System.out.println("Error dumping: " + e.toString());
@@ -331,6 +333,7 @@ public class DNPakTool {
 
     private static void dumpDir(DirEntry dirEntry, Path root, PakFileReader reader, int total, String progressFmt) throws IOException {
         //  It is the previous call's responsibility to create each subdirectory on the FS
+        long lastPrintTime = System.currentTimeMillis() - PRINT_INTERVAL;
         for (Entry entry : dirEntry.getChildren().values()) {
             Path path = root.resolve(entry.name);
             if (entry instanceof DirEntry) {
@@ -339,7 +342,9 @@ public class DNPakTool {
             } else if (entry instanceof FileEntry) {
                 dumpFile((FileEntry) entry, path, reader);
                 ++filesDumped;
-                if (filesDumped % 20 == 0) {
+                long time = System.currentTimeMillis();
+                if (time - lastPrintTime >= PRINT_INTERVAL) {
+                    lastPrintTime = time;
                     System.out.printf(progressFmt, (int) (100 * ((float) (filesDumped) / (float) total)), filesDumped, total);
                 }
             }
