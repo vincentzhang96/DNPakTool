@@ -40,12 +40,14 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.GZIPOutputStream;
+import java.util.zip.InflaterOutputStream;
 
 public class DNPakTool {
 
     private static final Pattern TOKENIZE = Pattern.compile("\"(\\\\\"|[^\"])*?\"|[^ ]+");
     private static final String[] EMPTY_STR_ARRAY = new String[0];
+
+    private static int filesDumped;
 
     public static void main(String[] args) {
         if (args.length > 1) {
@@ -313,34 +315,43 @@ public class DNPakTool {
         System.out.println("Dumping " + source.toString() + " into " + dest.toString());
         try (PakFileReader reader = new PakFileReader(source)) {
             reader.load();
-            System.out.printf("Read %d files\n", reader.getNumFilesRead());
+            int toRead = reader.getNumFilesRead();
+            System.out.printf("Read %d files\n", toRead);
             Files.createDirectories(dest);
-            dumpDir(reader.getRoot(), dest, reader);
-            System.out.println("Files dumped");
+            filesDumped = 0;
+            int fmtLen = String.format("%d", toRead).length();
+            String fmt = "Dumping... %3d%% %" + fmtLen + "d/%" + fmtLen + "d\r";
+            dumpDir(reader.getRoot(), dest, reader, toRead, fmt);
+            System.out.println("\nFiles dumped");
         } catch (IOException e) {
             System.out.println("Error dumping: " + e.toString());
             e.printStackTrace();
         }
     }
 
-    private static void dumpDir(DirEntry dirEntry, Path root, PakFileReader reader) throws IOException {
+    private static void dumpDir(DirEntry dirEntry, Path root, PakFileReader reader, int total, String progressFmt) throws IOException {
         //  It is the previous call's responsibility to create each subdirectory on the FS
         for (Entry entry : dirEntry.getChildren().values()) {
             Path path = root.resolve(entry.name);
             if (entry instanceof DirEntry) {
                 Files.createDirectories(path);
-                dumpDir((DirEntry) entry, path, reader);
+                dumpDir((DirEntry) entry, path, reader, total, progressFmt);
             } else if (entry instanceof FileEntry) {
                 dumpFile((FileEntry) entry, path, reader);
+                ++filesDumped;
+                if (filesDumped % 20 == 0) {
+                    System.out.printf(progressFmt, (int) (100 * ((float) (filesDumped) / (float) total)), filesDumped, total);
+                }
             }
         }
     }
 
     private static void dumpFile(FileEntry fileEntry, Path path, PakFileReader reader) throws IOException {
-        try (GZIPOutputStream outputStream = new GZIPOutputStream(Files.newOutputStream(path,
+        try (InflaterOutputStream outputStream = new InflaterOutputStream(Files.newOutputStream(path,
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
             WritableByteChannel byteChannel = Channels.newChannel(outputStream);
             reader.transferTo(fileEntry.getFileInfo(), byteChannel);
+            outputStream.flush();
         }
     }
 
