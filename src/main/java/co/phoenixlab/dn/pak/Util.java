@@ -26,6 +26,7 @@ package co.phoenixlab.dn.pak;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class Util {
 
@@ -42,14 +43,13 @@ public class Util {
     }
 
     public static String readNulTerminatedStr(byte[] data) {
-        StringBuilder builder = new StringBuilder();
-        int i;
-        int j = 0;
-        while((i = data[j]) > 0) {
-            builder.append((char) i);
-            ++j;
+        int len = 0;
+        while (data[len] != 0) {
+            ++len;
         }
-        return builder.toString();
+        byte[] subarray = new byte[len];
+        System.arraycopy(data, 0, subarray, 0, len);
+        return new String(subarray, StandardCharsets.UTF_8);
     }
 
     public static long readUint32(DataInput dataInput) throws IOException {
