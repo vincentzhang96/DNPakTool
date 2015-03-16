@@ -26,7 +26,6 @@ package co.phoenixlab.dn.pak;
 
 import java.io.DataInput;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 
 public class Util {
 
@@ -53,8 +52,8 @@ public class Util {
         return builder.toString();
     }
 
-    public static long readUint32(RandomAccessFile randomAccessFile) throws IOException {
-        return Integer.toUnsignedLong(reverseBytes(randomAccessFile.readInt()));
+    public static long readUint32(DataInput dataInput) throws IOException {
+        return Integer.toUnsignedLong(reverseBytes(dataInput.readInt()));
     }
 
     public static int reverseBytes(int i) {
