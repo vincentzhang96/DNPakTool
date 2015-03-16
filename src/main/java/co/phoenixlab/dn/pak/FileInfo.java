@@ -34,6 +34,7 @@ import static co.phoenixlab.dn.pak.Util.reverseBytes;
 public class FileInfo {
 
     private static final int NUL_PADDING_SIZE = 40;
+    public static final int NAME_BYTES_SIZE = 256;
 
     private String fullPath;
     private String fileName;
@@ -44,7 +45,7 @@ public class FileInfo {
     private int unknown;
 
     public FileInfo load(RandomAccessFile randomAccessFile) throws IOException {
-        byte[] nameBytes = new byte[256];
+        byte[] nameBytes = new byte[NAME_BYTES_SIZE];
         randomAccessFile.readFully(nameBytes);
         fullPath = readNulTerminatedStr(nameBytes).substring(1);    //  Remove leading \
         String[] tmp = fullPath.split("\\\\");
