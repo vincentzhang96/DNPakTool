@@ -53,11 +53,11 @@ public class PakHeader {
             }
             numFiles = readUint32(randomAccessFile);
             if (numFiles < 0L || numFiles > 0xFFFFFFFFL) {
-                throw new InvalidPakException("Invalid number of files");
+                throw new InvalidPakException(String.format("Invalid number of files: 0x%016X%n", numFiles));
             }
             fileTableOffset = readUint32(randomAccessFile);
-            if (numFiles < 0x400L || numFiles > 0xFFFFFFFFL) {
-                throw new InvalidPakException("Invalid file table offset");
+            if (fileTableOffset < 0x400L || fileTableOffset > 0xFFFFFFFFL) {
+                throw new InvalidPakException(String.format("Invalid file table offset: 0x%016X%n", fileTableOffset));
             }
         } catch (EOFException eof) {
             throw new InvalidPakException("Unexpected EOF", eof);
