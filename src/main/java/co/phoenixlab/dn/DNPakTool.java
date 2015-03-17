@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.InflaterOutputStream;
@@ -48,6 +49,7 @@ public class DNPakTool {
     private static final String[] EMPTY_STR_ARRAY = new String[0];
 
     private static int filesDumped;
+    private static Pattern filterPatternCached;
     public static final long PRINT_INTERVAL = 500L;
 
     public static void main(String[] args) {
@@ -322,7 +324,19 @@ public class DNPakTool {
             filesDumped = 0;
             int fmtLen = String.format("%d", toRead).length();
             String fmt = "Dumping... %2$" + fmtLen + "d/%3$" + fmtLen + "d %1$3d%%\r";
-            dumpDir(reader.getRoot(), dest, reader, toRead, fmt);
+            Predicate<String> filter;
+            if (find) {
+                final String filterStr = patternArg;
+                if (regex) {
+                    filterPatternCached = Pattern.compile(filterStr);
+                    filter = s -> filterPatternCached.matcher(s).find();
+                } else {
+                    filter = s -> s.contains(filterStr);
+                }
+            } else {
+                filter = s -> true;
+            }
+            dumpDir(reader.getRoot(), dest, reader, toRead, fmt, filter);
             System.out.printf(fmt, 100, filesDumped, toRead);
             System.out.println("\nFiles dumped");
         } catch (IOException e) {
@@ -331,16 +345,19 @@ public class DNPakTool {
         }
     }
 
-    private static void dumpDir(DirEntry dirEntry, Path root, PakFileReader reader, int total, String progressFmt) throws IOException {
+    private static void dumpDir(DirEntry dirEntry, Path root, PakFileReader reader, int total, String progressFmt,
+                                Predicate<String> filter) throws IOException {
         //  It is the previous call's responsibility to create each subdirectory on the FS
         long lastPrintTime = System.currentTimeMillis() - PRINT_INTERVAL;
         for (Entry entry : dirEntry.getChildren().values()) {
             Path path = root.resolve(entry.name);
             if (entry instanceof DirEntry) {
                 Files.createDirectories(path);
-                dumpDir((DirEntry) entry, path, reader, total, progressFmt);
+                dumpDir((DirEntry) entry, path, reader, total, progressFmt, filter);
             } else if (entry instanceof FileEntry) {
-                dumpFile((FileEntry) entry, path, reader);
+                if (filter.test(entry.name)) {
+                    dumpFile((FileEntry) entry, path, reader);
+                }
                 ++filesDumped;
                 long time = System.currentTimeMillis();
                 if (time - lastPrintTime >= PRINT_INTERVAL) {
