@@ -337,7 +337,7 @@ public class DNPakTool {
             Files.createDirectories(dest);
             filesDumped = 0;
             int fmtLen = String.format("%d", toRead).length();
-            String fmt = "Dumping... %2$" + fmtLen + "d/%3$" + fmtLen + "d %1$3d%% %4$3d f/s %5$4d KB/s\r";
+            String fmt = "Dumping... %2$" + fmtLen + "d/%3$" + fmtLen + "d %1$3d%% %4$4d f/s %5$,6d KB/s\r";
             Predicate<String> filter;
             if (find) {
                 final String filterStr = patternArg;
