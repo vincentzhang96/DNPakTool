@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2015 Vince
+ * Copyright (c) 2015 Vincent Zhang
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,6 +51,29 @@ public class DNPakTool {
     private static int filesDumped;
     private static Pattern filterPatternCached;
     public static final long PRINT_INTERVAL = 500L;
+    private static FileVisitor<Path> visitor = new FileVisitor<Path>() {
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            Files.delete(file);
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+            return FileVisitResult.TERMINATE;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            Files.delete(dir);
+            return FileVisitResult.CONTINUE;
+        }
+    };
 
     public static void main(String[] args) {
         if (args.length > 1) {
@@ -127,7 +150,7 @@ public class DNPakTool {
         printHelpLine("ls file...", "Prints the file paths in the pak(s)");
         printHelpLine("find [-r] string file", "Finds all paths in the pak that match the given string, " +
                 "or if -r is provided, the string is treated as a regex");
-        printHelpLine("dump [-ds] [-fr string] src dest", "Dumps all files in the src pak into the dest " +
+        printHelpLine("dump [-ds] [-fr string] src... dest", "Dumps all files in the src paks into the dest " +
                 "directory. If -d is provided, the output directory is EMPTIED before dumping. If -s is provided, " +
                 "then the deletion prompt with -d will be suppressed. -s implies -d. If -f is provided, it will only " +
                 "dump files matching the string (or, if -r is provided, string is treated as a regex. -r implies -f");
@@ -231,9 +254,13 @@ public class DNPakTool {
         System.out.println("Usage: find [-r] string file; see help");
     }
 
+    private static void printDumpUsage() {
+        System.out.println("Usage: dump [-ds] [-fr string] src... dest; see help");
+    }
+
     private static void dump(String[] args) {
         if (args.length == 0) {
-            System.out.println("Usage: dump [-ds] [-fr string] src dest; see help");
+            printDumpUsage();
             return;
         }
         boolean delete = false,
@@ -241,8 +268,7 @@ public class DNPakTool {
                 find = false,
                 regex = false;
         String patternArg = null;
-        String srcArg = null;
-        String dstArg = null;
+        List<String> files = new ArrayList<>();
         for (String s : args) {
             if (s.startsWith("-")) {
                 s = s.substring(1);
@@ -263,58 +289,46 @@ public class DNPakTool {
                 }
             } else if (find && patternArg == null) {
                 patternArg = s;
-            } else if (srcArg == null) {
-                srcArg = s;
-            } else if (dstArg == null) {
-                dstArg = s;
+            } else {
+                files.add(s);
             }
         }
-        if (srcArg == null || dstArg == null || (find && patternArg == null)) {
-            System.out.println("Usage: dump [-ds] [-fr string] src dest; see help");
+        if (files.size() < 2 || (find && patternArg == null)) {
+            printDumpUsage();
             return;
         }
-        Path source = Paths.get(srcArg);
-        Path dest = Paths.get(dstArg).toAbsolutePath().normalize();
+        Path dest = Paths.get(files.remove(files.size() - 1)).toAbsolutePath().normalize();
         if (delete) {
-            if (Files.isDirectory(dest)) {
-                if (!suppress) {
-                    System.out.println("Are you sure you wish to delete the directory " +
-                            dest.toString() + " and all of its children? (yes/no)");
-                    String resp = new Scanner(System.in).nextLine();
-                    if (!"yes".equalsIgnoreCase(resp)) {
-                        System.out.println("Operation cancelled");
-                        return;
-                    }
-                }
-                try {
-                    Files.walkFileTree(dest, new FileVisitor<Path>() {
-                        @Override
-                        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                            return FileVisitResult.CONTINUE;
-                        }
-
-                        @Override
-                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                            Files.delete(file);
-                            return FileVisitResult.CONTINUE;
-                        }
-
-                        @Override
-                        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                            return FileVisitResult.TERMINATE;
-                        }
-
-                        @Override
-                        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                            Files.delete(dir);
-                            return FileVisitResult.CONTINUE;
-                        }
-                    });
-                } catch (IOException e) {
-                    System.out.println("Unable to clean output directory");
-                }
+            if (deleteDir(suppress, dest)) {
+                return;
             }
         }
+        for (String src : files) {
+            dumpPak(find, regex, patternArg, Paths.get(src), dest);
+        }
+    }
+
+    private static boolean deleteDir(boolean suppress, Path dest) {
+        if (Files.isDirectory(dest)) {
+            if (!suppress) {
+                System.out.println("Are you sure you wish to delete the directory " +
+                        dest.toString() + " and all of its children? (yes/no)");
+                String resp = new Scanner(System.in).nextLine();
+                if (!"yes".equalsIgnoreCase(resp)) {
+                    System.out.println("Operation cancelled");
+                    return true;
+                }
+            }
+            try {
+                Files.walkFileTree(dest, visitor);
+            } catch (IOException e) {
+                System.out.println("Unable to clean output directory");
+            }
+        }
+        return false;
+    }
+
+    private static void dumpPak(boolean find, boolean regex, String patternArg, Path source, Path dest) {
         System.out.println("Dumping " + source.toString() + " into " + dest.toString());
         try (PakFileReader reader = new PakFileReader(source)) {
             reader.load();
@@ -323,7 +337,7 @@ public class DNPakTool {
             Files.createDirectories(dest);
             filesDumped = 0;
             int fmtLen = String.format("%d", toRead).length();
-            String fmt = "Dumping... %2$" + fmtLen + "d/%3$" + fmtLen + "d %1$3d%%\r";
+            String fmt = "Dumping... %2$" + fmtLen + "d/%3$" + fmtLen + "d %1$3d%% %4$3d f/s %5$4d KB/s\r";
             Predicate<String> filter;
             if (find) {
                 final String filterStr = patternArg;
@@ -349,6 +363,9 @@ public class DNPakTool {
                                 Predicate<String> filter) throws IOException {
         //  It is the previous call's responsibility to create each subdirectory on the FS
         long lastPrintTime = System.currentTimeMillis() - PRINT_INTERVAL;
+        float scalar = 1000F / (float)PRINT_INTERVAL;
+        int filesAccum = 0;
+        long bytesAccum = 0L;
         for (Entry entry : dirEntry.getChildren().values()) {
             Path path = root.resolve(entry.name);
             if (entry instanceof DirEntry) {
@@ -358,11 +375,18 @@ public class DNPakTool {
                 if (filter.test(entry.name)) {
                     dumpFile((FileEntry) entry, path, reader);
                 }
+                bytesAccum += Files.size(path);
                 ++filesDumped;
+                ++filesAccum;
                 long time = System.currentTimeMillis();
                 if (time - lastPrintTime >= PRINT_INTERVAL) {
                     lastPrintTime = time;
-                    System.out.printf(progressFmt, (int) (100 * ((float) (filesDumped) / (float) total)), filesDumped, total);
+                    System.out.printf(progressFmt, (int) (100 * ((float) (filesDumped) / (float) total)),
+                            filesDumped, total,
+                            (int)(filesAccum * scalar),
+                            (long)(bytesAccum * scalar / 1024));
+                    filesAccum = 0;
+                    bytesAccum = 0;
                 }
             }
         }
@@ -382,5 +406,6 @@ public class DNPakTool {
             System.out.println("Usage: pack [-as] dest src; see help");
             return;
         }
+        //  TODO
     }
 }
