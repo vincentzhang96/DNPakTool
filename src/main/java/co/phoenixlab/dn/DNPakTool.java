@@ -351,7 +351,7 @@ public class DNPakTool {
                 filter = s -> true;
             }
             dumpDir(reader.getRoot(), dest, reader, toRead, fmt, filter);
-            System.out.printf(fmt, 100, filesDumped, toRead);
+            System.out.printf(fmt, 100, filesDumped, toRead, 0, 0);
             System.out.println("\nFiles dumped");
         } catch (IOException e) {
             System.out.println("Error dumping: " + e.toString());
