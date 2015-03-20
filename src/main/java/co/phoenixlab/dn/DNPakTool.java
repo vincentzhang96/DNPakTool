@@ -412,7 +412,7 @@ public class DNPakTool {
                                 Predicate<String> filter) throws IOException {
         //  It is the previous call's responsibility to create each subdirectory on the FS
         long lastPrintTime = System.currentTimeMillis() - PRINT_INTERVAL;
-        float scalar = 1000F / (float)PRINT_INTERVAL;
+        float scalar = 1000F / (float) PRINT_INTERVAL;
         int filesAccum = 0;
         long bytesAccum = 0L;
         for (Entry entry : dirEntry.getChildren().values()) {
@@ -432,8 +432,8 @@ public class DNPakTool {
                     lastPrintTime = time;
                     System.out.printf(progressFmt, (int) (100 * ((float) (filesDumped) / (float) total)),
                             filesDumped, total,
-                            (int)(filesAccum * scalar),
-                            (long)(bytesAccum * scalar / 1024));
+                            (int) (filesAccum * scalar),
+                            (long) (bytesAccum * scalar / 1024));
                     filesAccum = 0;
                     bytesAccum = 0;
                 }
@@ -450,11 +450,51 @@ public class DNPakTool {
         }
     }
 
+    /*
+    pack [-as] dest src", "Packs all files and subdirectories inside
+    src into a pak file dest. If -a is provided, missing files will be inserted and existing
+    files will be overwritten. If the file is not a valid pak, no changes wil occur. Without -a, a new
+    pak will be created; if a file already exists and -s is not provided, then it will be deleted
+    without prompting."
+     */
+
     private static void pack(String[] args) {
         if (args.length == 0) {
-            System.out.println("Usage: pack [-as] dest src; see help");
+            printPackHelp();
             return;
         }
-        //  TODO
+        boolean append = false,
+                silent = false;
+        String dest = null,
+                src = null;
+        for (String s : args) {
+            if (s.startsWith("-")) {
+                s = s.substring(1);
+                for (char c : s.toCharArray()) {
+                    switch (c) {
+                        case 'a':
+                            append = true;
+                            break;
+                        case 's':
+                            silent = true;
+                            break;
+                    }
+                }
+            } else if (dest == null) {
+                dest = s;
+            } else {
+                src = s;
+                break;
+            }
+        }
+        if (dest == null || src == null) {
+            printPackHelp();
+            return;
+        }
+        
+    }
+
+    private static void printPackHelp() {
+        System.out.println("Usage: pack [-as] dest src; see help");
     }
 }
