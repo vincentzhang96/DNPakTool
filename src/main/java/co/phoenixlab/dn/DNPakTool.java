@@ -247,9 +247,22 @@ public class DNPakTool {
             }
             if (ok) {
                 List<String> results = searchResults(string, regex, file);
-                Collections.sort(results, String.CASE_INSENSITIVE_ORDER);
                 System.out.printf("Found %d files\n", results.size());
-                
+                Collections.sort(results, String.CASE_INSENSITIVE_ORDER);
+                for (String s : results) {
+                    int last = s.lastIndexOf('\\');
+                    String name;
+                    String path;
+                    if (last != -1) {
+                        name = s.substring(last + 1);
+                        path = s.substring(0, last);
+                    } else {
+                        name = s;
+                        path = "\\";
+                    }
+                    System.out.printf("%1$s\n\tin %2$s%n", name, path);
+                }
+                return;
             }
         }
         System.out.println("Usage: find [-r] string file; see help");
