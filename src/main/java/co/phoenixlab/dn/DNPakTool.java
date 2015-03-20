@@ -225,12 +225,11 @@ public class DNPakTool {
     }
 
     private static void find(String[] args) {
-
         if (args.length > 1) {
-            String string;
+            String string = null;
             boolean ok = false;
             boolean regex = false;
-            Path file;
+            Path file = null;
             if (args.length == 2) {
                 string = args[0];
                 file = Paths.get(args[1]);
@@ -247,11 +246,48 @@ public class DNPakTool {
                 }
             }
             if (ok) {
-
-
+                List<String> results = searchResults(string, regex, file);
+                Collections.sort(results, String.CASE_INSENSITIVE_ORDER);
+                System.out.printf("Found %d files\n", results.size());
+                
             }
         }
         System.out.println("Usage: find [-r] string file; see help");
+    }
+
+    private static List<String> searchResults(String pattern, boolean regex, Path file) {
+        Predicate<String> matcher;
+        if (regex) {
+            filterPatternCached = Pattern.compile(pattern);
+            matcher = filterPatternCached.asPredicate();
+        } else {
+            matcher = s -> s.contains(pattern);
+        }
+        List<String> ret = new ArrayList<>();
+        try (PakFileReader reader = new PakFileReader(file)) {
+            reader.load();
+            int toRead = reader.getNumFilesRead();
+            System.out.printf("Read %d files\n", toRead);
+            DirEntry dir = reader.getRoot();
+            searchDir(dir, ret, matcher);
+        } catch (IOException e) {
+            System.out.println("Error searching: " + e.toString());
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
+    private static void searchDir(DirEntry dirEntry, List<String> results, Predicate<String> matcher) {
+        for (Entry entry : dirEntry.getChildren().values()) {
+            if (entry instanceof DirEntry) {
+                searchDir((DirEntry) entry, results, matcher);
+            } else if (entry instanceof FileEntry) {
+                FileEntry fileEntry = (FileEntry) entry;
+                if (matcher.test(fileEntry.name)) {
+                    results.add(fileEntry.getFileInfo().getFullPath());
+                }
+            }
+        }
     }
 
     private static void printDumpUsage() {
@@ -343,7 +379,7 @@ public class DNPakTool {
                 final String filterStr = patternArg;
                 if (regex) {
                     filterPatternCached = Pattern.compile(filterStr);
-                    filter = s -> filterPatternCached.matcher(s).find();
+                    filter = filterPatternCached.asPredicate();
                 } else {
                     filter = s -> s.contains(filterStr);
                 }
