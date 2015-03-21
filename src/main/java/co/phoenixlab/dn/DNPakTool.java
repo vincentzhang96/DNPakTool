@@ -491,7 +491,33 @@ public class DNPakTool {
             printPackHelp();
             return;
         }
-        
+        if (append) {
+            throw new UnsupportedOperationException("Appending is not yet supported, sorry!");
+        }
+        try {
+            Path destPak = Paths.get(dest);
+            Path srcDir = Paths.get(src);
+            if (!Files.isDirectory(srcDir) || !Files.exists(srcDir)) {
+                throw new IOException("Source must be an existing directory");
+            }
+            if (Files.isDirectory(destPak)) {
+                throw new IOException("Dest cannot be a directory");
+            }
+            if (!silent && Files.exists(destPak)) {
+                System.out.println("Are you sure you wish to delete the file " +
+                        destPak.toString() + "? (yes/no)");
+                String resp = new Scanner(System.in).nextLine();
+                if (!"yes".equalsIgnoreCase(resp)) {
+                    System.out.println("Operation cancelled");
+                    return;
+                }
+                Files.delete(destPak);
+            }
+            
+
+        } catch (IOException e) {
+            //  TODO
+        }
     }
 
     private static void printPackHelp() {
