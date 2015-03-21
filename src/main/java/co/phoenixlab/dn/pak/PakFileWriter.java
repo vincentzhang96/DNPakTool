@@ -1,6 +1,8 @@
 package co.phoenixlab.dn.pak;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -8,12 +10,17 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.Deflater;
 
 public class PakFileWriter {
 
+    private static int BUFFER_SIZE = 8 * 1024 * 1024;  //  8 MB
+
     private Path basePath;
     private Path targetPath;
-    private Map<String, FileEntry> files;
+    private Map<Path, FileEntry> files;
+    private byte[] bufferIn = new byte[BUFFER_SIZE];
+    private byte[] bufferOut = new byte[BUFFER_SIZE];
 
     public PakFileWriter(Path basePath, Path targetPath) {
         this.basePath = basePath;
@@ -37,7 +44,7 @@ public class PakFileWriter {
                 fileInfo.setFileName(fileName);
                 fileInfo.setFullPath(relative);
                 FileEntry fileEntry = new FileEntry(fileName, null, fileInfo);
-                files.put(relative, fileEntry);
+                files.put(file, fileEntry);
                 return FileVisitResult.CONTINUE;
             }
 
@@ -54,7 +61,44 @@ public class PakFileWriter {
     }
 
     public void write() throws IOException {
-        
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(targetPath.toFile(), "rw")) {
+            randomAccessFile.seek(1024L);  //  Skip header for now
+            Deflater deflater = new Deflater();
+            int lenIn;
+            int lenOut;
+            long startPos;
+            for (Map.Entry<Path, FileEntry> entry : files.entrySet()) {
+                deflater.reset();
+                FileEntry fileEntry = entry.getValue();
+                FileInfo fileInfo = fileEntry.getFileInfo();
+                startPos = randomAccessFile.getFilePointer();
+                fileInfo.setDiskOffset(startPos);
+                try (BufferedInputStream inputStream = new BufferedInputStream(Files.newInputStream(entry.getKey()), BUFFER_SIZE)) {
+                    while ((lenIn = inputStream.read(bufferIn)) != -1) {
+                        deflater.setInput(bufferIn, 0, lenIn);
+                        while ((lenOut = deflater.deflate(bufferOut)) != 0) {
+                            randomAccessFile.write(bufferOut, 0, lenOut);
+                        }
+                    }
+                    deflater.finish();
+                    lenOut = deflater.deflate(bufferOut);
+                    randomAccessFile.write(bufferOut, 0, lenOut);
+                    long diskSize = randomAccessFile.getFilePointer() - startPos;
+                    fileInfo.setDiskSize(diskSize);
+                    fileInfo.setCompressedSize(diskSize);
+                }
+            }
+            deflater.end();
+            deflater = null;
+            long tableOffset = randomAccessFile.getFilePointer();
+            long numEntries = files.size();
+
+
+        }
+    }
+
+    private void writeHeader(RandomAccessFile randomAccessFile, long count, long tableOffset) throws IOException {
+
     }
 
 
