@@ -98,4 +98,32 @@ public class FileInfo {
     public String getFileName() {
         return fileName;
     }
+
+    protected void setFullPath(String fullPath) {
+        this.fullPath = fullPath;
+    }
+
+    protected void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    protected void setDiskSize(long diskSize) {
+        this.diskSize = diskSize;
+    }
+
+    protected void setDecompressedSize(long decompressedSize) {
+        this.decompressedSize = decompressedSize;
+    }
+
+    protected void setCompressedSize(long compressedSize) {
+        this.compressedSize = compressedSize;
+    }
+
+    protected void setDiskOffset(long diskOffset) {
+        this.diskOffset = diskOffset;
+    }
+
+    protected void setUnknown(int unknown) {
+        this.unknown = unknown;
+    }
 }
