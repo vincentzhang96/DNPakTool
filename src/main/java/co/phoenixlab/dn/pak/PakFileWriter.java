@@ -3,6 +3,9 @@ package co.phoenixlab.dn.pak;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -16,16 +19,22 @@ public class PakFileWriter {
 
     private static int BUFFER_SIZE = 8 * 1024 * 1024;  //  8 MB
 
-    private Path basePath;
-    private Path targetPath;
-    private Map<Path, FileEntry> files;
-    private byte[] bufferIn = new byte[BUFFER_SIZE];
-    private byte[] bufferOut = new byte[BUFFER_SIZE];
+    private static final byte[] EMPTY = new byte[256];
+
+    private final Path basePath;
+    private final Path targetPath;
+    private final Map<Path, FileEntry> files;
+    private final byte[] bufferIn;
+    private final byte[] bufferOut;
+    private final ByteBuffer fileHeaderBuffer;
 
     public PakFileWriter(Path basePath, Path targetPath) {
         this.basePath = basePath;
         this.targetPath = targetPath;
         files = new HashMap<>();
+        bufferIn = new byte[BUFFER_SIZE];
+        bufferOut = new byte[BUFFER_SIZE];
+        fileHeaderBuffer = ByteBuffer.allocate(316);
     }
 
     public void build() throws IOException {
@@ -92,8 +101,13 @@ public class PakFileWriter {
             deflater = null;
             long tableOffset = randomAccessFile.getFilePointer();
             long numEntries = files.size();
-
-
+            FileChannel fileChannel = randomAccessFile .getChannel();
+            for (FileEntry entry : files.values()) {
+                fillFileHeader(entry.getFileInfo());
+                while (fileChannel.write(fileHeaderBuffer) != 0);
+            }
+            randomAccessFile.seek(0);
+            writeHeader(randomAccessFile, numEntries, tableOffset);
         }
     }
 
@@ -101,6 +115,15 @@ public class PakFileWriter {
 
     }
 
+    private void fillFileHeader(FileInfo fileInfo) {
+        fileHeaderBuffer.rewind();
+        byte[] str = fileInfo.getFullPath().getBytes(StandardCharsets.UTF_8);
+        int pad = 256 - str.length;
+        fileHeaderBuffer.write(str);
+        fileHeaderBuffer.write(EMPTY, 0, pad);
+
+
+    }
 
     private String relativeToBase(Path path) {
         return "\\" + basePath.relativize(path).toString().replace('/', '\\');
