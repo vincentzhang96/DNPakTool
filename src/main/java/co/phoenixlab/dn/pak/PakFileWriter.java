@@ -4,8 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -19,14 +19,13 @@ public class PakFileWriter {
 
     private static int BUFFER_SIZE = 8 * 1024 * 1024;  //  8 MB
 
-    private static final byte[] EMPTY = new byte[256];
 
     private final Path basePath;
     private final Path targetPath;
     private final Map<Path, FileEntry> files;
     private final byte[] bufferIn;
     private final byte[] bufferOut;
-    private final ByteBuffer fileHeaderBuffer;
+    private final ByteBuffer buffer;
 
     public PakFileWriter(Path basePath, Path targetPath) {
         this.basePath = basePath;
@@ -34,7 +33,7 @@ public class PakFileWriter {
         files = new HashMap<>();
         bufferIn = new byte[BUFFER_SIZE];
         bufferOut = new byte[BUFFER_SIZE];
-        fileHeaderBuffer = ByteBuffer.allocate(316);
+        buffer = ByteBuffer.allocate(1024).order(ByteOrder.LITTLE_ENDIAN);
     }
 
     public void build() throws IOException {
@@ -69,6 +68,7 @@ public class PakFileWriter {
         });
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
     public void write() throws IOException {
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(targetPath.toFile(), "rw")) {
             randomAccessFile.seek(1024L);  //  Skip header for now
@@ -98,31 +98,34 @@ public class PakFileWriter {
                 }
             }
             deflater.end();
-            deflater = null;
             long tableOffset = randomAccessFile.getFilePointer();
             long numEntries = files.size();
             FileChannel fileChannel = randomAccessFile .getChannel();
             for (FileEntry entry : files.values()) {
-                fillFileHeader(entry.getFileInfo());
-                while (fileChannel.write(fileHeaderBuffer) != 0);
+                while (fileChannel.write(fillFileHeader(entry.getFileInfo())) != 0);
             }
-            randomAccessFile.seek(0);
-            writeHeader(randomAccessFile, numEntries, tableOffset);
+            fileChannel.position(0);
+            fileChannel.write(fillHeader(numEntries, tableOffset));
         }
     }
 
-    private void writeHeader(RandomAccessFile randomAccessFile, long count, long tableOffset) throws IOException {
-
+    private ByteBuffer fillHeader(long count, long tableOffset) throws IOException {
+        buffer.rewind();
+        buffer.limit(buffer.capacity());
+        PakHeader header = new PakHeader();
+        header.fileTableOffset = tableOffset;
+        header.numFiles = count;
+        header.unknown = PakHeader.UNKNOWN_CONST;
+        header.magic = PakHeader.MAGIC_WORD;
+        header.write(buffer);
+        return buffer;
     }
 
-    private void fillFileHeader(FileInfo fileInfo) {
-        fileHeaderBuffer.rewind();
-        byte[] str = fileInfo.getFullPath().getBytes(StandardCharsets.UTF_8);
-        int pad = 256 - str.length;
-        fileHeaderBuffer.write(str);
-        fileHeaderBuffer.write(EMPTY, 0, pad);
-
-
+    private ByteBuffer fillFileHeader(FileInfo fileInfo) {
+        buffer.rewind();
+        buffer.limit(buffer.capacity());
+        fileInfo.write(buffer);
+        return buffer;
     }
 
     private String relativeToBase(Path path) {

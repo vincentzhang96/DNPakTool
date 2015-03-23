@@ -27,12 +27,19 @@ package co.phoenixlab.dn.pak;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+
 import static co.phoenixlab.dn.pak.Util.*;
 
 public class PakHeader {
 
     public static final String MAGIC_WORD = "EyedentityGames Packing File 0.1";
+    public static final byte[] MAGIC_WORD_BYTES = MAGIC_WORD.getBytes(StandardCharsets.UTF_8);
     public static final int UNKNOWN_CONST = 0x0B;
+    public static final int NAME_BYTES_SIZE = 256;
+    public static final int NUL_PADDING_SIZE = 756;
+    private static final byte[] EMPTY = new byte[NUL_PADDING_SIZE];
 
     protected String magic;
     protected int unknown;
@@ -51,11 +58,11 @@ public class PakHeader {
             if (unknown != UNKNOWN_CONST) {
                 throw new InvalidPakException("Unknown Const does not match");
             }
-            numFiles = readUint32(randomAccessFile);
+            numFiles = fromUint32(randomAccessFile.readInt());
             if (numFiles < 0L || numFiles > 0xFFFFFFFFL) {
                 throw new InvalidPakException(String.format("Invalid number of files: 0x%016X%n", numFiles));
             }
-            fileTableOffset = readUint32(randomAccessFile);
+            fileTableOffset = fromUint32(randomAccessFile.readInt());
             if (fileTableOffset < 0x400L || fileTableOffset > 0xFFFFFFFFL) {
                 throw new InvalidPakException(String.format("Invalid file table offset: 0x%016X%n", fileTableOffset));
             }
@@ -63,6 +70,17 @@ public class PakHeader {
             throw new InvalidPakException("Unexpected EOF", eof);
         }
         return this;
+    }
+
+    public void write(ByteBuffer buffer) {
+        int pad = NAME_BYTES_SIZE - MAGIC_WORD_BYTES.length;
+        buffer.put(MAGIC_WORD_BYTES);
+        buffer.put(EMPTY, 0, pad);
+        buffer.putInt(unknown);
+        buffer.putInt((int) numFiles);
+        buffer.putInt((int) fileTableOffset);
+        buffer.put(EMPTY, 0, NUL_PADDING_SIZE);
+        buffer.flip();
     }
 
     public String getMagic() {

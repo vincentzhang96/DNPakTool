@@ -26,7 +26,7 @@ public class UtilTest {
         long exp = 0x78563412L;
         DataInput dataInput = mock(DataInput.class);
         when(dataInput.readInt()).thenReturn(val);
-        long ret = Util.readUint32(dataInput);
+        long ret = Util.fromUint32(dataInput.readInt());
         assertEquals(exp, ret);
     }
 

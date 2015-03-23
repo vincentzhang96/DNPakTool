@@ -26,15 +26,17 @@ package co.phoenixlab.dn.pak;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
-import static co.phoenixlab.dn.pak.Util.readNulTerminatedStr;
-import static co.phoenixlab.dn.pak.Util.readUint32;
-import static co.phoenixlab.dn.pak.Util.reverseBytes;
+import static co.phoenixlab.dn.pak.Util.*;
 
 public class FileInfo {
 
     private static final int NUL_PADDING_SIZE = 40;
     public static final int NAME_BYTES_SIZE = 256;
+
+    private static final byte[] EMPTY = new byte[NAME_BYTES_SIZE];
 
     private String fullPath;
     private String fileName;
@@ -50,13 +52,27 @@ public class FileInfo {
         fullPath = readNulTerminatedStr(nameBytes).substring(1);    //  Remove leading \
         String[] tmp = fullPath.split("\\\\");
         fileName = tmp[tmp.length - 1];
-        diskSize = readUint32(randomAccessFile);
-        decompressedSize = readUint32(randomAccessFile);
-        compressedSize = readUint32(randomAccessFile);
-        diskOffset = readUint32(randomAccessFile);
+        diskSize = fromUint32(randomAccessFile.readInt());
+        decompressedSize = fromUint32(randomAccessFile.readInt());
+        compressedSize = fromUint32(randomAccessFile.readInt());
+        diskOffset = fromUint32(randomAccessFile.readInt());
         unknown = reverseBytes(randomAccessFile.readInt());
         randomAccessFile.skipBytes(NUL_PADDING_SIZE);
         return this;
+    }
+
+    public void write(ByteBuffer buffer) {
+        byte[] str = getFullPath().getBytes(StandardCharsets.UTF_8);
+        int pad = NAME_BYTES_SIZE - str.length;
+        buffer.put(str);
+        buffer.put(EMPTY, 0, pad);
+        buffer.putInt((int) diskSize);
+        buffer.putInt((int) decompressedSize);
+        buffer.putInt((int) compressedSize);
+        buffer.putInt((int) diskOffset);
+        buffer.putInt(0x27);    //  I have no idea why, but that's what I saw in a mod and it works for them
+        buffer.put(EMPTY, 0, NUL_PADDING_SIZE);
+        buffer.flip();
     }
 
     @Override

@@ -36,7 +36,7 @@ public class Util {
     public static String readNulTerminatedStr(DataInput dataIn) throws IOException {
         StringBuilder builder = new StringBuilder();
         int i;
-        while((i = dataIn.readUnsignedByte()) > 0) {
+        while ((i = dataIn.readUnsignedByte()) > 0) {
             builder.append((char) i);
         }
         return builder.toString();
@@ -52,12 +52,16 @@ public class Util {
         return new String(subarray, StandardCharsets.UTF_8);
     }
 
-    public static long readUint32(DataInput dataInput) throws IOException {
-        return Integer.toUnsignedLong(reverseBytes(dataInput.readInt()));
+    public static long fromUint32(int i) {
+        return Integer.toUnsignedLong(reverseBytes(i));
     }
 
     public static int reverseBytes(int i) {
         return ((i & 0xFF) << 24) | ((i & 0xFF00) << 8 | ((i & 0xFF0000) >>> 8) | ((i & 0xFF000000) >>> 24));
+    }
+
+    public static int toUint32(long l) {
+        return reverseBytes((int) l);
     }
 
 }
