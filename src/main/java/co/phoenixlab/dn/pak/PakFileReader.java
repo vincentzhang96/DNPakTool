@@ -60,29 +60,29 @@ public class PakFileReader implements AutoCloseable {
         randomAccessFile.seek(header.getFileTableOffset());
         for (long l = 0; l < header.numFiles; ++l) {
             FileInfo fileInfo = new FileInfo().load(randomAccessFile);
-            insert(fileInfo.getFullPath(), root, fileInfo);
+            root.insert(fileInfo.getFullPath(), fileInfo);
             ++numFilesRead;
         }
     }
 
-    public static void insert(String path, DirEntry parent, FileInfo fileInfo) throws IllegalArgumentException {
-        String[] strs = path.split("\\\\", 2);
-        if (strs.length == 1) {
-            parent.getChildren().put(strs[0], new FileEntry(fileInfo.getFileName(), parent, fileInfo));
-            return;
-        }
-        Entry newEntry = parent.getChildren().get(strs[0]);
-        DirEntry dirEntry;
-        if (newEntry instanceof DirEntry) {
-            dirEntry = (DirEntry) newEntry;
-        } else if (newEntry != null) {
-            throw new IllegalArgumentException("Cannot replace an existing file with a directory");
-        } else {
-            dirEntry = new DirEntry(strs[0], parent);
-            parent.getChildren().put(strs[0], dirEntry);
-        }
-        insert(strs[1], dirEntry, fileInfo);
-    }
+//    public static void insert(String path, DirEntry parent, FileInfo fileInfo) throws IllegalArgumentException {
+//        String[] strs = path.split("\\\\", 2);
+//        if (strs.length == 1) {
+//            parent.getChildren().put(strs[0], new FileEntry(fileInfo.getFileName(), parent, fileInfo));
+//            return;
+//        }
+//        Entry newEntry = parent.getChildren().get(strs[0]);
+//        DirEntry dirEntry;
+//        if (newEntry instanceof DirEntry) {
+//            dirEntry = (DirEntry) newEntry;
+//        } else if (newEntry != null) {
+//            throw new IllegalArgumentException("Cannot replace an existing file with a directory");
+//        } else {
+//            dirEntry = new DirEntry(strs[0], parent);
+//            parent.getChildren().put(strs[0], dirEntry);
+//        }
+//        insert(strs[1], dirEntry, fileInfo);
+//    }
 
     public PakHeader getHeader() {
         return header;

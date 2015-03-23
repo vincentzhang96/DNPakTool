@@ -39,6 +39,25 @@ public class DirEntry extends Entry implements Comparable<DirEntry> {
         return children;
     }
 
+    public void insert(String path, FileInfo fileInfo) {
+        String[] strs = path.split("\\\\", 2);
+        if (strs.length == 1) {
+            children.put(strs[0], new FileEntry(fileInfo.getFileName(), parent, fileInfo));
+            return;
+        }
+        Entry newEntry = children.get(strs[0]);
+        DirEntry dirEntry;
+        if (newEntry instanceof DirEntry) {
+            dirEntry = (DirEntry) newEntry;
+        } else if (newEntry != null) {
+            throw new IllegalArgumentException("Cannot replace an existing file with a directory");
+        } else {
+            dirEntry = new DirEntry(strs[0], parent);
+            children.put(strs[0], dirEntry);
+        }
+        dirEntry.insert(strs[1], fileInfo);
+    }
+
     @Override
     public int compareTo(DirEntry o) {
         return this.name.compareToIgnoreCase(o.name);
