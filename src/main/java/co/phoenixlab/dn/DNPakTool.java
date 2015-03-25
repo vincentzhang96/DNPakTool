@@ -383,7 +383,7 @@ public class DNPakTool {
             Files.createDirectories(dest);
             filesDumped = 0;
             int fmtLen = String.format("%d", toRead).length();
-            String fmt = "Dumping... %2$" + fmtLen + "d/%3$" + fmtLen + "d %1$3d%% %4$4d f/s %5$,6d KB/s\r";
+            String fmt = "Dumping... %2$," + fmtLen + "d/%3$," + fmtLen + "d %1$3d%% %4$4d f/s %5$,6d KB/s\r";
             Predicate<String> filter;
             if (find) {
                 final String filterStr = patternArg;
@@ -512,8 +512,12 @@ public class DNPakTool {
             }
             PakFileWriter writer = new PakFileWriter(srcDir, destPak);
             writer.build();
-            writer.write();
-            System.out.printf("Files packed%n");
+            int lenF = Integer.toString(writer.getNumFiles()).length();
+            int lenB = Long.toString(Math.max(1, writer.getCumulativeSize()/1024/1024)).length();
+            String fmt = "Packing... %1$," + lenF + "d/%2$," + lenF + "d %3$3d%% %4$,4d f/s" +
+                    "    %5$," + lenB + "d/%6$," + lenB + "dMB %7$3d%% %8$,6d KB/s   \r";
+            writer.write(u -> System.out.print(u.toString(fmt)));
+            System.out.printf("%n%d files packed%n", writer.getNumFiles());
         } catch (IOException e) {
             System.out.println("Error packing: " + e.toString());
             e.printStackTrace();

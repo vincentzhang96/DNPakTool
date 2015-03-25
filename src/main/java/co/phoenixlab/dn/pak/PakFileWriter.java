@@ -86,8 +86,8 @@ public class PakFileWriter {
             long time;
             int bytesReadPerSec = 0;
             int filesPerSec = 0;
+            time = System.currentTimeMillis();
             for (Map.Entry<Path, FileEntry> entry : files.entrySet()) {
-                time = System.currentTimeMillis();
                 deflater.reset();
                 FileEntry fileEntry = entry.getValue();
                 FileInfo fileInfo = fileEntry.getFileInfo();
@@ -101,7 +101,7 @@ public class PakFileWriter {
                         while ((lenOut = deflater.deflate(bufferOut)) != 0) {
                             randomAccessFile.write(bufferOut, 0, lenOut);
                         }
-                        if (System.currentTimeMillis() - time > 1000) {
+                        if (System.currentTimeMillis() - time >= 1000) {
                             update.filesPerSec = filesPerSec;
                             update.kilobytesPerSec = bytesReadPerSec / 1024;
                             filesPerSec = 0;
@@ -118,12 +118,13 @@ public class PakFileWriter {
                     fileInfo.setCompressedSize(diskSize);
                     ++filesPerSec;
                     ++update.filesWritten;
-                    if (System.currentTimeMillis() - time > 1000) {
+                    if (System.currentTimeMillis() - time >= 1000) {
                         update.filesPerSec = filesPerSec;
                         update.kilobytesPerSec = bytesReadPerSec / 1024;
                         filesPerSec = 0;
                         bytesReadPerSec = 0;
                         progressListener.accept(update);
+                        time = System.currentTimeMillis();
                     }
                 }
             }
@@ -131,9 +132,34 @@ public class PakFileWriter {
             long tableOffset = randomAccessFile.getFilePointer();
             long numEntries = files.size();
             FileChannel fileChannel = randomAccessFile .getChannel();
+            int filesWrittenPerSec = 0;
+            int bytesWrittenPerSec = 0;
+            time = System.currentTimeMillis();
             for (FileEntry entry : files.values()) {
                 fillFileHeader(entry.getFileInfo());
-                while (fileChannel.write(buffer) != 0);
+                int writ;
+                while ((writ = fileChannel.write(buffer)) != 0) {
+                    bytesWrittenPerSec += writ;
+                    update.bytesWritten += writ;
+                    if (System.currentTimeMillis() - time >= 1000) {
+                        update.filesPerSec = filesWrittenPerSec;
+                        update.kilobytesPerSec = bytesWrittenPerSec / 1024;
+                        filesWrittenPerSec = 0;
+                        bytesWrittenPerSec = 0;
+                        time = System.currentTimeMillis();
+                        progressListener.accept(update);
+                    }
+                }
+                ++filesWrittenPerSec;
+                ++update.filesWritten;
+                if (System.currentTimeMillis() - time >= 1000) {
+                    update.filesPerSec = filesWrittenPerSec;
+                    update.kilobytesPerSec = bytesWrittenPerSec / 1024;
+                    filesWrittenPerSec = 0;
+                    bytesWrittenPerSec = 0;
+                    time = System.currentTimeMillis();
+                    progressListener.accept(update);
+                }
             }
             fileChannel.position(0);
             fileChannel.write(fillHeader(numEntries, tableOffset));
@@ -162,7 +188,15 @@ public class PakFileWriter {
         return "\\" + basePath.relativize(path).toString().replace('/', '\\');
     }
 
-    static class ProgressUpdate {
+    public long getCumulativeSize() {
+        return cumulativeSize;
+    }
+
+    public int getNumFiles() {
+        return files.size();
+    }
+
+    public static class ProgressUpdate {
         long totalBytes;
         long bytesWritten;
         int kilobytesPerSec;
@@ -181,8 +215,9 @@ public class PakFileWriter {
 
         public String toString(String fmt) {
             return String.format(fmt,
-                    filesWritten, totalFiles, (double)filesWritten/(double)totalFiles, filesPerSec,
-                    bytesWritten, totalBytes, (double)bytesWritten/(double)totalBytes, kilobytesPerSec);
+                    filesWritten, totalFiles, (int)(100 * ((double)filesWritten/(double)totalFiles)), filesPerSec,
+                    Math.max(1, bytesWritten/1024/1024), Math.max(1, totalBytes/1024/1024),
+                    (int)(100 * ((double)bytesWritten/(double)totalBytes)), kilobytesPerSec);
         }
     }
 
