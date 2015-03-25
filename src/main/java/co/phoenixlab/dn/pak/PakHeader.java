@@ -34,6 +34,7 @@ import static co.phoenixlab.dn.pak.Util.*;
 
 public class PakHeader {
 
+    public static final int HEADER_SIZE = 1024;
     public static final String MAGIC_WORD = "EyedentityGames Packing File 0.1";
     public static final byte[] MAGIC_WORD_BYTES = MAGIC_WORD.getBytes(StandardCharsets.UTF_8);
     public static final int UNKNOWN_CONST = 0x0B;

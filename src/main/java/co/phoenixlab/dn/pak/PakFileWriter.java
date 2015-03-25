@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.zip.Deflater;
 
 public class PakFileWriter {
@@ -27,13 +28,16 @@ public class PakFileWriter {
     private final byte[] bufferOut;
     private final ByteBuffer buffer;
 
+    private long cumulativeSize;
+
     public PakFileWriter(Path basePath, Path targetPath) {
         this.basePath = basePath;
         this.targetPath = targetPath;
         files = new HashMap<>();
         bufferIn = new byte[BUFFER_SIZE];
         bufferOut = new byte[BUFFER_SIZE];
-        buffer = ByteBuffer.allocate(1024).order(ByteOrder.LITTLE_ENDIAN);
+        buffer = ByteBuffer.allocate(PakHeader.HEADER_SIZE).order(ByteOrder.LITTLE_ENDIAN);
+        cumulativeSize = PakHeader.HEADER_SIZE;
     }
 
     public void build() throws IOException {
@@ -48,7 +52,9 @@ public class PakFileWriter {
                 String fileName = file.getFileName().toString();
                 String relative = relativeToBase(file);
                 FileInfo fileInfo = new FileInfo();
-                fileInfo.setDecompressedSize(Files.size(file));
+                long size = Files.size(file);
+                fileInfo.setDecompressedSize(size);
+                cumulativeSize += size + FileInfo.FILE_INFO_SIZE;
                 fileInfo.setFileName(fileName);
                 fileInfo.setFullPath(relative);
                 FileEntry fileEntry = new FileEntry(fileName, null, fileInfo);
@@ -69,14 +75,19 @@ public class PakFileWriter {
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
-    public void write() throws IOException {
+    public void write(Consumer<ProgressUpdate> progressListener) throws IOException {
+        ProgressUpdate update = new ProgressUpdate(this);
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(targetPath.toFile(), "rw")) {
             randomAccessFile.seek(1024L);  //  Skip header for now
             Deflater deflater = new Deflater();
             int lenIn;
             int lenOut;
             long startPos;
+            long time;
+            int bytesReadPerSec = 0;
+            int filesPerSec = 0;
             for (Map.Entry<Path, FileEntry> entry : files.entrySet()) {
+                time = System.currentTimeMillis();
                 deflater.reset();
                 FileEntry fileEntry = entry.getValue();
                 FileInfo fileInfo = fileEntry.getFileInfo();
@@ -84,9 +95,19 @@ public class PakFileWriter {
                 fileInfo.setDiskOffset(startPos);
                 try (BufferedInputStream inputStream = new BufferedInputStream(Files.newInputStream(entry.getKey()), BUFFER_SIZE)) {
                     while ((lenIn = inputStream.read(bufferIn)) != -1) {
+                        bytesReadPerSec += lenIn;
+                        update.bytesWritten += lenIn;
                         deflater.setInput(bufferIn, 0, lenIn);
                         while ((lenOut = deflater.deflate(bufferOut)) != 0) {
                             randomAccessFile.write(bufferOut, 0, lenOut);
+                        }
+                        if (System.currentTimeMillis() - time > 1000) {
+                            update.filesPerSec = filesPerSec;
+                            update.kilobytesPerSec = bytesReadPerSec / 1024;
+                            filesPerSec = 0;
+                            bytesReadPerSec = 0;
+                            progressListener.accept(update);
+                            time = System.currentTimeMillis();
                         }
                     }
                     deflater.finish();
@@ -95,6 +116,15 @@ public class PakFileWriter {
                     long diskSize = randomAccessFile.getFilePointer() - startPos;
                     fileInfo.setDiskSize(diskSize);
                     fileInfo.setCompressedSize(diskSize);
+                    ++filesPerSec;
+                    ++update.filesWritten;
+                    if (System.currentTimeMillis() - time > 1000) {
+                        update.filesPerSec = filesPerSec;
+                        update.kilobytesPerSec = bytesReadPerSec / 1024;
+                        filesPerSec = 0;
+                        bytesReadPerSec = 0;
+                        progressListener.accept(update);
+                    }
                 }
             }
             deflater.end();
@@ -132,5 +162,28 @@ public class PakFileWriter {
         return "\\" + basePath.relativize(path).toString().replace('/', '\\');
     }
 
+    static class ProgressUpdate {
+        long totalBytes;
+        long bytesWritten;
+        int kilobytesPerSec;
+        int totalFiles;
+        int filesWritten;
+        int filesPerSec;
+
+        ProgressUpdate(PakFileWriter writer) {
+            totalBytes = writer.cumulativeSize;
+            bytesWritten = 0;
+            kilobytesPerSec = 0;
+            totalFiles = writer.files.size();
+            filesWritten = 0;
+            filesPerSec = 0;
+        }
+
+        public String toString(String fmt) {
+            return String.format(fmt,
+                    filesWritten, totalFiles, (double)filesWritten/(double)totalFiles, filesPerSec,
+                    bytesWritten, totalBytes, (double)bytesWritten/(double)totalBytes, kilobytesPerSec);
+        }
+    }
 
 }
