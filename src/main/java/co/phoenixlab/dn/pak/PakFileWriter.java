@@ -102,7 +102,8 @@ public class PakFileWriter {
             long numEntries = files.size();
             FileChannel fileChannel = randomAccessFile .getChannel();
             for (FileEntry entry : files.values()) {
-                while (fileChannel.write(fillFileHeader(entry.getFileInfo())) != 0);
+                fillFileHeader(entry.getFileInfo());
+                while (fileChannel.write(buffer) != 0);
             }
             fileChannel.position(0);
             fileChannel.write(fillHeader(numEntries, tableOffset));
@@ -121,11 +122,10 @@ public class PakFileWriter {
         return buffer;
     }
 
-    private ByteBuffer fillFileHeader(FileInfo fileInfo) {
+    private void fillFileHeader(FileInfo fileInfo) {
         buffer.rewind();
         buffer.limit(buffer.capacity());
         fileInfo.write(buffer);
-        return buffer;
     }
 
     private String relativeToBase(Path path) {

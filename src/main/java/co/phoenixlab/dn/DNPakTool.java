@@ -24,10 +24,7 @@
 
 package co.phoenixlab.dn;
 
-import co.phoenixlab.dn.pak.DirEntry;
-import co.phoenixlab.dn.pak.Entry;
-import co.phoenixlab.dn.pak.FileEntry;
-import co.phoenixlab.dn.pak.PakFileReader;
+import co.phoenixlab.dn.pak.*;
 
 import java.io.IOException;
 import java.nio.channels.Channels;
@@ -513,10 +510,13 @@ public class DNPakTool {
                 }
                 Files.delete(destPak);
             }
-            
-
+            PakFileWriter writer = new PakFileWriter(srcDir, destPak);
+            writer.build();
+            writer.write();
+            System.out.printf("Files packed%n");
         } catch (IOException e) {
-            //  TODO
+            System.out.println("Error packing: " + e.toString());
+            e.printStackTrace();
         }
     }
 
