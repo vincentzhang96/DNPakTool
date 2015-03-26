@@ -132,9 +132,6 @@ public class DNPakTool {
             case "dump":
                 dump(args);
                 break;
-            case "pack":
-                pack(args);
-                break;
             default:
                 System.out.println("Unknown command. Try \"help\" for a list of a commands");
         }
@@ -151,11 +148,6 @@ public class DNPakTool {
                 "directory. If -d is provided, the output directory is EMPTIED before dumping. If -s is provided, " +
                 "then the deletion prompt with -d will be suppressed. -s implies -d. If -f is provided, it will only " +
                 "dump files matching the string (or, if -r is provided, string is treated as a regex. -r implies -f");
-        printHelpLine("pack [-as] dest src", "Packs all files and subdirectories inside " +
-                "src into a pak file dest. If -a is provided, missing files will be inserted and existing " +
-                "files will be overwritten. If the file is not a valid pak, no changes wil occur. Without -a, a new " +
-                "pak will be created; if a file already exists and -s is not provided, then it will be deleted " +
-                "without prompting.");
     }
 
     private static void printHelpLine(String cmds, String desc) {
@@ -445,86 +437,5 @@ public class DNPakTool {
             reader.transferTo(fileEntry.getFileInfo(), byteChannel);
             outputStream.flush();
         }
-    }
-
-    /*
-    pack [-as] dest src", "Packs all files and subdirectories inside
-    src into a pak file dest. If -a is provided, missing files will be inserted and existing
-    files will be overwritten. If the file is not a valid pak, no changes wil occur. Without -a, a new
-    pak will be created; if a file already exists and -s is not provided, then it will be deleted
-    without prompting."
-     */
-
-    private static void pack(String[] args) {
-        if (args.length == 0) {
-            printPackHelp();
-            return;
-        }
-        boolean append = false,
-                silent = false;
-        String dest = null,
-                src = null;
-        for (String s : args) {
-            if (s.startsWith("-")) {
-                s = s.substring(1);
-                for (char c : s.toCharArray()) {
-                    switch (c) {
-                        case 'a':
-                            append = true;
-                            break;
-                        case 's':
-                            silent = true;
-                            break;
-                    }
-                }
-            } else if (dest == null) {
-                dest = s;
-            } else {
-                src = s;
-                break;
-            }
-        }
-        if (dest == null || src == null) {
-            printPackHelp();
-            return;
-        }
-        if (append) {
-            throw new UnsupportedOperationException("Appending is not yet supported, sorry!");
-        }
-        try {
-            Path destPak = Paths.get(dest);
-            Path srcDir = Paths.get(src);
-            if (!Files.isDirectory(srcDir) || !Files.exists(srcDir)) {
-                throw new IOException("Source must be an existing directory");
-            }
-            if (Files.isDirectory(destPak)) {
-                throw new IOException("Dest cannot be a directory");
-            }
-            if (!silent && Files.exists(destPak)) {
-                System.out.println("Are you sure you wish to delete the file " +
-                        destPak.toString() + "? (yes/no)");
-                String resp = new Scanner(System.in).nextLine();
-                if (!"yes".equalsIgnoreCase(resp)) {
-                    System.out.println("Operation cancelled");
-                    return;
-                }
-                Files.delete(destPak);
-            }
-            PakFileWriter writer = new PakFileWriter(srcDir, destPak);
-            writer.build();
-            int lenF = Integer.toString(writer.getNumFiles()).length();
-            int lenB = Long.toString(Math.max(1, writer.getCumulativeSize()/1024/1024)).length();
-            String fmt = "Packing... %1$," + lenF + "d/%2$," + lenF + "d %3$3d%% %4$,4d f/s" +
-                    "    %5$," + lenB + "d/%6$," + lenB + "dMB %7$3d%% %8$,6d KB/s   \r";
-            writer.write(u -> System.out.print(u.toString(fmt)));
-            System.out.printf("%n%d files packed%n", writer.getNumFiles());
-        } catch (IOException e) {
-            System.out.println("Error packing: " + e.toString());
-            e.printStackTrace();
-        }
-    }
-
-    private static void printPackHelp() {
-        System.out.println("Usage: pack [-as] dest src; see help");
     }
 }
