@@ -24,7 +24,10 @@
 
 package co.phoenixlab.dn;
 
-import co.phoenixlab.dn.pak.*;
+import co.phoenixlab.dn.pak.DirEntry;
+import co.phoenixlab.dn.pak.Entry;
+import co.phoenixlab.dn.pak.FileEntry;
+import co.phoenixlab.dn.pak.PakFileReader;
 
 import java.io.IOException;
 import java.nio.channels.Channels;
@@ -38,6 +41,7 @@ import java.util.Scanner;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import java.util.zip.InflaterOutputStream;
 
 public class DNPakTool {
@@ -144,8 +148,9 @@ public class DNPakTool {
         printHelpLine("ls file...", "Prints the file paths in the pak(s)");
         printHelpLine("find [-r] string file", "Finds all paths in the pak that match the given string, " +
                 "or if -r is provided, the string is treated as a regex");
-        printHelpLine("dump [-ds] [-fr string] src... dest", "Dumps all files in the src paks into the dest " +
-                "directory. If -d is provided, the output directory is EMPTIED before dumping. If -s is provided, " +
+        printHelpLine("dump [-ds] [-fr string] src...[*] dest", "Dumps all files in the src paks into the dest " +
+                "directory. If src is terminated with /* then all .pak files within the directory will be dumped. " +
+                "If -d is provided, the output directory is EMPTIED before dumping. If -s is provided, " +
                 "then the deletion prompt with -d will be suppressed. -s implies -d. If -f is provided, it will only " +
                 "dump files matching the string (or, if -r is provided, string is treated as a regex. -r implies -f");
     }
@@ -341,8 +346,21 @@ public class DNPakTool {
                 return;
             }
         }
+        final boolean useFilter = find;
+        final boolean useRegex = regex;
+        final String filterArg = patternArg;
         for (String src : files) {
-            dumpPak(find, regex, patternArg, Paths.get(src), dest);
+            if (src.endsWith("/*") || src.endsWith("\\*")) {
+                try (Stream<Path> stream = Files.list(Paths.get(src.substring(0, src.length() - 2)))) {
+                    stream.filter(p -> p.getFileName().toString().endsWith(".pak")).
+                            forEach(path -> dumpPak(useFilter, useRegex, filterArg, path, dest));
+                } catch (IOException e) {
+                    System.out.println("Error dumping: " + e.toString());
+                    e.printStackTrace();
+                }
+            } else {
+                dumpPak(useFilter, useRegex, filterArg, Paths.get(src), dest);
+            }
         }
     }
 
