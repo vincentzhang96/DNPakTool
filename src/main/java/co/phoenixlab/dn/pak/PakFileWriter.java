@@ -20,6 +20,8 @@ public class PakFileWriter {
 
     private static int BUFFER_SIZE = 8 * 1024 * 1024;  //  8 MB
 
+    private static int UPDATE_INTERVAL = 200;
+    private static double SCALAR = 1000.0 / UPDATE_INTERVAL;
 
     private final Path basePath;
     private final Path targetPath;
@@ -101,9 +103,9 @@ public class PakFileWriter {
                         while ((lenOut = deflater.deflate(bufferOut)) != 0) {
                             randomAccessFile.write(bufferOut, 0, lenOut);
                         }
-                        if (System.currentTimeMillis() - time >= 1000) {
-                            update.filesPerSec = filesPerSec;
-                            update.kilobytesPerSec = bytesReadPerSec / 1024;
+                        if (System.currentTimeMillis() - time >= UPDATE_INTERVAL) {
+                            update.filesPerSec = (int) (filesPerSec * SCALAR);
+                            update.kilobytesPerSec = (int) (bytesReadPerSec / 1024 * SCALAR);
                             filesPerSec = 0;
                             bytesReadPerSec = 0;
                             progressListener.accept(update);
@@ -118,9 +120,9 @@ public class PakFileWriter {
                     fileInfo.setCompressedSize(diskSize);
                     ++filesPerSec;
                     ++update.filesWritten;
-                    if (System.currentTimeMillis() - time >= 1000) {
-                        update.filesPerSec = filesPerSec;
-                        update.kilobytesPerSec = bytesReadPerSec / 1024;
+                    if (System.currentTimeMillis() - time >= UPDATE_INTERVAL) {
+                        update.filesPerSec = (int) (filesPerSec * SCALAR);
+                        update.kilobytesPerSec = (int) (bytesReadPerSec / 1024 * SCALAR);
                         filesPerSec = 0;
                         bytesReadPerSec = 0;
                         progressListener.accept(update);
@@ -141,24 +143,24 @@ public class PakFileWriter {
                 while ((writ = fileChannel.write(buffer)) != 0) {
                     bytesWrittenPerSec += writ;
                     update.bytesWritten += writ;
-                    if (System.currentTimeMillis() - time >= 1000) {
-                        update.filesPerSec = filesWrittenPerSec;
-                        update.kilobytesPerSec = bytesWrittenPerSec / 1024;
+                    if (System.currentTimeMillis() - time >= UPDATE_INTERVAL) {
+                        update.filesPerSec = (int) (filesWrittenPerSec * SCALAR);
+                        update.kilobytesPerSec = (int) (bytesWrittenPerSec / 1024 * SCALAR);
                         filesWrittenPerSec = 0;
                         bytesWrittenPerSec = 0;
-                        time = System.currentTimeMillis();
                         progressListener.accept(update);
+                        time = System.currentTimeMillis();
                     }
                 }
                 ++filesWrittenPerSec;
                 ++update.filesWritten;
-                if (System.currentTimeMillis() - time >= 1000) {
-                    update.filesPerSec = filesWrittenPerSec;
-                    update.kilobytesPerSec = bytesWrittenPerSec / 1024;
+                if (System.currentTimeMillis() - time >= UPDATE_INTERVAL) {
+                    update.filesPerSec = (int) (filesWrittenPerSec * SCALAR);
+                    update.kilobytesPerSec = (int) (bytesWrittenPerSec / 1024 * SCALAR);
                     filesWrittenPerSec = 0;
                     bytesWrittenPerSec = 0;
-                    time = System.currentTimeMillis();
                     progressListener.accept(update);
+                    time = System.currentTimeMillis();
                 }
             }
             fileChannel.position(0);
