@@ -62,6 +62,9 @@ public class DirEntry extends Entry implements Comparable<DirEntry> {
     }
 
     public Entry get(String path) {
+        if (path.startsWith("\\")) {
+            path = path.substring(1);
+        }
         String[] strs = path.split("\\\\", 2);
         Entry entry = children.get(strs[0]);
         if (strs.length == 1) {
