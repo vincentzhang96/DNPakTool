@@ -51,8 +51,8 @@ public class DNPakTool {
 
     private static int filesDumped;
     private static Pattern filterPatternCached;
-    public static final long PRINT_INTERVAL = 500L;
-    private static FileVisitor<Path> visitor = new FileVisitor<Path>() {
+    public static long PRINT_INTERVAL = 500L;
+    private static final FileVisitor<Path> visitor = new FileVisitor<Path>() {
         @Override
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
             return FileVisitResult.CONTINUE;
@@ -167,7 +167,6 @@ public class DNPakTool {
         }
         Runtime runtime = Runtime.getRuntime();
         for (String s : args) {
-            long memstart = runtime.maxMemory() - runtime.freeMemory();
             Path path = Paths.get(s);
             System.out.println("-- FILE LIST --");
             System.out.println(path.toString());
