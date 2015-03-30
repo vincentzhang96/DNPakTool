@@ -32,34 +32,55 @@ import static org.junit.Assert.*;
 
 public class DirEntryTest {
 
-    @Test
-    public void testGetChildren() throws Exception {
-        DirEntry dirEntry = new DirEntry("\\", null);
-        FileInfo fileInfo = new FileInfo();
-        String path = "\\test\\foo\\bar\\bay.baz\\qq.dds";
+    DirEntry dirEntry;
+    String path;
+    FileInfo fileInfo;
+    String path1;
+    FileInfo fileInfo1;
+
+    @Before
+    public void setUp() throws Exception {
+        dirEntry = new DirEntry("\\", null);
+        fileInfo = new FileInfo();
+        path = "\\test\\foo\\bar\\bay.baz\\qq.dds";
         fileInfo.setFileName("qq.dds");
         fileInfo.setFullPath(path);
         dirEntry.insert(path, fileInfo);
-        FileInfo fileInfo1 = new FileInfo();
-        String path1 = "\\moo.bar";
+        fileInfo1 = new FileInfo();
+        path1 = "\\moo.bar";
         fileInfo1.setFullPath(path1);
         fileInfo1.setFileName("moo.bar");
         dirEntry.insert(path1, fileInfo1);
+    }
+
+    @Test
+    public void testGetChildren() throws Exception {
         Map<String, Entry> map = dirEntry.getChildren();
         assertTrue(map.get("test") instanceof DirEntry);
         assertTrue(map.get("moo.bar") instanceof FileEntry);
         assertSame(fileInfo1, ((FileEntry) map.get("moo.bar")).getFileInfo());
+        assertNull(map.get("potato"));
     }
 
     @Test
-    public void testInsert() throws Exception {
-        DirEntry dirEntry = new DirEntry("\\", null);
-        FileInfo fileInfo = new FileInfo();
-        String path = "\\test\\foo\\bar\\bay.baz\\qq.dds";
-        fileInfo.setFileName("qq.dds");
-        fileInfo.setFullPath(path);
-        dirEntry.insert(path, fileInfo);
+    public void testInsertAndGet() throws Exception {
+        //  This test passes if insert worked in setUp() and if get() works
         assertSame(fileInfo, ((FileEntry) dirEntry.get(path)).getFileInfo());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testInsertThrow() {
+        dirEntry.insert(path1 + "\\bar", fileInfo1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetThrow() throws Exception {
+        dirEntry.get(path1 + "\\bar");
+    }
+
+    @Test
+    public void testGetNull() throws Exception {
+        assertNull(dirEntry.get("\\potato\\tuber"));
     }
 
     @Test
