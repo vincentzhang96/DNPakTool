@@ -34,11 +34,11 @@ import java.nio.file.Path;
 
 public class PakFileReader implements AutoCloseable {
 
-    private PakHeader header;
-    private DirEntry root;
-    private Path path;
+    private final PakHeader header;
+    private final DirEntry root;
+    private final Path path;
     private int numFilesRead;
-    RandomAccessFile randomAccessFile;
+    private RandomAccessFile randomAccessFile;
 
     public PakFileReader(Path path) {
         this.path = path;
