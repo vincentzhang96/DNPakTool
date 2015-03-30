@@ -72,6 +72,8 @@ public class DirEntry extends Entry implements Comparable<DirEntry> {
         }
         if (entry instanceof DirEntry) {
             return ((DirEntry) entry).get(strs[1]);
+        } else if (entry == null) {
+            return null;
         } else {
             throw new IllegalArgumentException("Cannot get a child of a file (leaf) node");
         }
