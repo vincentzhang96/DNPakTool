@@ -47,7 +47,7 @@ public class PakHeader {
     protected long numFiles;
     protected long fileTableOffset;
 
-    public PakHeader read(RandomAccessFile randomAccessFile) throws IOException {
+    public void read(RandomAccessFile randomAccessFile) throws IOException {
         try {
             randomAccessFile.seek(0L);
             magic = readNulTerminatedStr(randomAccessFile);
@@ -70,7 +70,6 @@ public class PakHeader {
         } catch (EOFException eof) {
             throw new InvalidPakException("Unexpected EOF", eof);
         }
-        return this;
     }
 
     public void write(ByteBuffer buffer) {
