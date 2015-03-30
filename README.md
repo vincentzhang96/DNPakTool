@@ -1,4 +1,4 @@
 DNPakTool
 ========
 
-A simple command line tool for extracting and packing Eyedentity pak files.
+A simple command line tool for listing, extracting, and searching Eyedentity/Dragon Nest resource pak files.
