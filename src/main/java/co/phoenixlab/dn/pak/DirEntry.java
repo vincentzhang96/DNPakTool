@@ -39,14 +39,15 @@ public class DirEntry extends Entry implements Comparable<DirEntry> {
         return children;
     }
 
-    public void insert(String path, FileInfo fileInfo) {
+    public FileEntry insert(String path, FileInfo fileInfo) {
         if (path.startsWith("\\")) {
             path = path.substring(1);
         }
         String[] strs = path.split("\\\\", 2);
         if (strs.length == 1) {
-            children.put(strs[0], new FileEntry(fileInfo.getFileName(), parent, fileInfo));
-            return;
+            FileEntry entry =  new FileEntry(fileInfo.getFileName(), parent, fileInfo);
+            children.put(strs[0], entry);
+            return entry;
         }
         Entry newEntry = children.get(strs[0]);
         DirEntry dirEntry;
@@ -58,7 +59,7 @@ public class DirEntry extends Entry implements Comparable<DirEntry> {
             dirEntry = new DirEntry(strs[0], parent);
             children.put(strs[0], dirEntry);
         }
-        dirEntry.insert(strs[1], fileInfo);
+        return dirEntry.insert(strs[1], fileInfo);
     }
 
     public Entry get(String path) {

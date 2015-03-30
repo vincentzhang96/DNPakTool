@@ -31,6 +31,8 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PakFileReader implements AutoCloseable {
 
@@ -46,7 +48,7 @@ public class PakFileReader implements AutoCloseable {
         root = new DirEntry("\\", null);
     }
 
-    public void load() throws IOException {
+    public PakFile load() throws IOException {
         numFilesRead = 0;
         if (Files.notExists(path)) {
             throw new FileNotFoundException("The file does not exist: " + path.toString());
@@ -58,11 +60,14 @@ public class PakFileReader implements AutoCloseable {
         randomAccessFile = new RandomAccessFile(path.toFile(), "r");
         header.read(randomAccessFile);
         randomAccessFile.seek(header.getFileTableOffset());
+        Map<String, FileEntry> entries = new HashMap<>((int) header.numFiles);
         for (long l = 0; l < header.numFiles; ++l) {
             FileInfo fileInfo = new FileInfo().load(randomAccessFile);
-            root.insert(fileInfo.getFullPath(), fileInfo);
+            FileEntry entry = root.insert(fileInfo.getFullPath(), fileInfo);
+            entries.put(fileInfo.getFullPath(), entry);
             ++numFilesRead;
         }
+        return new PakFile(root, entries, header, path);
     }
 
 //    public static void insert(String path, DirEntry parent, FileInfo fileInfo) throws IllegalArgumentException {
@@ -83,22 +88,6 @@ public class PakFileReader implements AutoCloseable {
 //        }
 //        insert(strs[1], dirEntry, fileInfo);
 //    }
-
-    public PakHeader getHeader() {
-        return header;
-    }
-
-    public DirEntry getRoot() {
-        return root;
-    }
-
-    public Path getPath() {
-        return path;
-    }
-
-    public int getNumFilesRead() {
-        return numFilesRead;
-    }
 
     public FileChannel getFileChannel(FileInfo fileInfo) throws IOException {
         FileChannel fileChannel = randomAccessFile.getChannel();

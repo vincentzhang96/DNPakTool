@@ -24,10 +24,7 @@
 
 package co.phoenixlab.dn;
 
-import co.phoenixlab.dn.pak.DirEntry;
-import co.phoenixlab.dn.pak.Entry;
-import co.phoenixlab.dn.pak.FileEntry;
-import co.phoenixlab.dn.pak.PakFileReader;
+import co.phoenixlab.dn.pak.*;
 
 import java.io.IOException;
 import java.nio.channels.Channels;
@@ -171,9 +168,9 @@ public class DNPakTool {
             System.out.println("-- FILE LIST --");
             System.out.println(path.toString());
             try (PakFileReader reader = new PakFileReader(path)) {
-                reader.load();
-                System.out.printf("Read %d files\n", reader.getNumFilesRead());
-                printDirectory(reader.getRoot(), 0);
+                PakFile pakFile = reader.load();
+                System.out.printf("Read %d files\n", pakFile.getNumFiles());
+                printDirectory(pakFile.getRoot(), 0);
             } catch (IOException e) {
                 System.out.println("Error reading: " + e.toString());
                 e.printStackTrace();
@@ -272,10 +269,10 @@ public class DNPakTool {
         }
         List<String> ret = new ArrayList<>();
         try (PakFileReader reader = new PakFileReader(file)) {
-            reader.load();
-            int toRead = reader.getNumFilesRead();
+            PakFile pakFile = reader.load();
+            int toRead = pakFile.getNumFiles();
             System.out.printf("Read %d files\n", toRead);
-            DirEntry dir = reader.getRoot();
+            DirEntry dir = pakFile.getRoot();
             searchDir(dir, ret, matcher);
         } catch (IOException e) {
             System.out.println("Error searching: " + e.toString());
@@ -388,8 +385,8 @@ public class DNPakTool {
     private static void dumpPak(boolean find, boolean regex, String patternArg, Path source, Path dest) {
         System.out.println("Dumping " + source.toString() + " into " + dest.toString());
         try (PakFileReader reader = new PakFileReader(source)) {
-            reader.load();
-            int toRead = reader.getNumFilesRead();
+            PakFile pakFile = reader.load();
+            int toRead = pakFile.getNumFiles();
             System.out.printf("Read %d files\n", toRead);
             Files.createDirectories(dest);
             filesDumped = 0;
@@ -407,7 +404,7 @@ public class DNPakTool {
             } else {
                 filter = s -> true;
             }
-            dumpDir(reader.getRoot(), dest, reader, toRead, fmt, filter);
+            dumpDir(pakFile.getRoot(), dest, reader, toRead, fmt, filter);
             System.out.printf(fmt, 100, filesDumped, toRead, 0, 0);
             System.out.println("\nFiles dumped");
         } catch (IOException e) {
