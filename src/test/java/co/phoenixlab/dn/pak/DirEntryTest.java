@@ -32,11 +32,11 @@ import static org.junit.Assert.*;
 
 public class DirEntryTest {
 
-    DirEntry dirEntry;
-    String path;
-    FileInfo fileInfo;
-    String path1;
-    FileInfo fileInfo1;
+    private DirEntry dirEntry;
+    private String path;
+    private FileInfo fileInfo;
+    private String path1;
+    private FileInfo fileInfo1;
 
     @Before
     public void setUp() throws Exception {
