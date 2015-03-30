@@ -40,6 +40,9 @@ public class DirEntry extends Entry implements Comparable<DirEntry> {
     }
 
     public void insert(String path, FileInfo fileInfo) {
+        if (path.startsWith("\\")) {
+            path = path.substring(1);
+        }
         String[] strs = path.split("\\\\", 2);
         if (strs.length == 1) {
             children.put(strs[0], new FileEntry(fileInfo.getFileName(), parent, fileInfo));
@@ -56,6 +59,19 @@ public class DirEntry extends Entry implements Comparable<DirEntry> {
             children.put(strs[0], dirEntry);
         }
         dirEntry.insert(strs[1], fileInfo);
+    }
+
+    public Entry get(String path) {
+        String[] strs = path.split("\\\\", 2);
+        Entry entry = children.get(strs[0]);
+        if (strs.length == 1) {
+            return entry;
+        }
+        if (entry instanceof DirEntry) {
+            return ((DirEntry) entry).get(strs[1]);
+        } else {
+            throw new IllegalArgumentException("Cannot get a child of a file (leaf) node");
+        }
     }
 
     @Override
