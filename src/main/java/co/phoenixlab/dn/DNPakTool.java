@@ -101,6 +101,7 @@ public class DNPakTool {
             } else {
                 handleCommand(cmd, tokenize(line[1]));
             }
+            System.gc();
         }
     }
 
@@ -361,6 +362,7 @@ public class DNPakTool {
             } else {
                 dumpPak(useFilter, useRegex, filterArg, Paths.get(src), dest);
             }
+            System.gc();
         }
     }
 
