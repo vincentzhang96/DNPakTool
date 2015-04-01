@@ -55,7 +55,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>co.phoenixlab.dn.DNPakTool</mainClass>
+                            <mainClass>co.phoenixlab.dn.pak.DNPakTool</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

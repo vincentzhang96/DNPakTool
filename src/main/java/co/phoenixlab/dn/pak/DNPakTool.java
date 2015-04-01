@@ -22,9 +22,7 @@
  * THE SOFTWARE.
  */
 
-package co.phoenixlab.dn;
-
-import co.phoenixlab.dn.pak.*;
+package co.phoenixlab.dn.pak;
 
 import java.io.IOException;
 import java.nio.channels.Channels;
