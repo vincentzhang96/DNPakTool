@@ -39,7 +39,6 @@ public class PakFileReader implements AutoCloseable {
     private final PakHeader header;
     private final DirEntry root;
     private final Path path;
-    private int numFilesRead;
     private RandomAccessFile randomAccessFile;
 
     public PakFileReader(Path path) {
@@ -49,7 +48,6 @@ public class PakFileReader implements AutoCloseable {
     }
 
     public PakFile load() throws IOException {
-        numFilesRead = 0;
         if (Files.notExists(path)) {
             throw new FileNotFoundException("The file does not exist: " + path.toString());
         }
@@ -65,29 +63,9 @@ public class PakFileReader implements AutoCloseable {
             FileInfo fileInfo = new FileInfo().load(randomAccessFile);
             FileEntry entry = root.insert(fileInfo.getFullPath(), fileInfo);
             entries.put(fileInfo.getFullPath(), entry);
-            ++numFilesRead;
         }
         return new PakFile(root, entries, header, path);
     }
-
-//    public static void insert(String path, DirEntry parent, FileInfo fileInfo) throws IllegalArgumentException {
-//        String[] strs = path.split("\\\\", 2);
-//        if (strs.length == 1) {
-//            parent.getChildren().put(strs[0], new FileEntry(fileInfo.getFileName(), parent, fileInfo));
-//            return;
-//        }
-//        Entry newEntry = parent.getChildren().get(strs[0]);
-//        DirEntry dirEntry;
-//        if (newEntry instanceof DirEntry) {
-//            dirEntry = (DirEntry) newEntry;
-//        } else if (newEntry != null) {
-//            throw new IllegalArgumentException("Cannot replace an existing file with a directory");
-//        } else {
-//            dirEntry = new DirEntry(strs[0], parent);
-//            parent.getChildren().put(strs[0], dirEntry);
-//        }
-//        insert(strs[1], dirEntry, fileInfo);
-//    }
 
     public FileChannel getFileChannel(FileInfo fileInfo) throws IOException {
         FileChannel fileChannel = randomAccessFile.getChannel();
