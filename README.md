@@ -11,7 +11,7 @@ TODO
 ##Usage (Library)
 Include DNPakTool-1.0-SNAPSHOT.jar in your classpath, or install the library to your local maven repository 
 via `mvn install` and adding to your pom.xml 
-```
+```xml
 <dependency>
     <groupId>co.phoenixlab.dn</groupId>
     <artifactId>DNPakTool</artifactId>
