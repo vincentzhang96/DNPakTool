@@ -5,8 +5,32 @@ A simple command line tool for listing, extracting, and searching Eyedentity/Dra
 as a Java library for reading and processing them.
 
 ##Usage (Command Line)
-TODO
+DNPakTool may be used in an interactive shell-like manner or through startup arguments. The commands and arguments are 
+the same.
 
+To run a command, 
+```
+java -jar DMPakTool-1.0-SNAPSHOT.jar command args...
+```
+
+To launch in interactive mode, simply pass no arguments as such:
+```
+java -jar DNPakTool-1.0-SNAPSHOT.jar
+```
+and you will be greeted by a prompt.
+
+| Command | Arguments          | Description                                          |
+|---------|--------------------|------------------------------------------------------|
+| help    | (none)             | Prints all available commands and their descriptions |
+| exit    | (none)             | Exits the program. Aliases: quit, stop               |
+| ls      | `files...`         | Prints all the subfile paths within `files...`       |
+| find    | `[-r] string file` | Finds all paths in the pak with filename containing the given string. `-r` treats 
+string as a regex. |
+| dump    | `[-ds] [-fr string] src...[*] dest` | Dumps all files in the `src...` paks into the `dest` directory. If a 
+`src` path is terminated by `/*` then the program will attempt to dump all files ending in `.pak`. If `-d` is specified
+, then the output directory will be recursively emptied before dumping after a confirmation prompt. If `-s` is 
+specified, then the `-d` deletion prompt will be suppressed, *and also implies `-d`.* If `-f` is specified, then 
+only files that match will be dumped (see `find` for details). |
 
 ##Usage (Library)
 Include DNPakTool-1.0-SNAPSHOT.jar in your classpath, or install the library to your local maven repository 
@@ -32,6 +56,7 @@ Construct a new [`PakFileReader`]
 - [x] Command line interactive mode
 - [x] Command line pass-by-program-argument mode
 - [ ] Document everything
+- [ ] Support directory stripping (dump file(s) without creating parent directories)
 - [ ] Provide a simple API for getting the contents of a given subfile
 
 ##Building
