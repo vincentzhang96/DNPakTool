@@ -29,10 +29,10 @@ Construct a new [`PakFileReader`]
  for an example on how to do so.
 
 ##To Do
-[x] Command line interactive mode
-[x] Command line pass-by-program-argument mode
-[ ] Document everything
-[ ] Provide a simple API for getting the contents of a given subfile
+- [x] Command line interactive mode
+- [x] Command line pass-by-program-argument mode
+- [ ] Document everything
+- [ ] Provide a simple API for getting the contents of a given subfile
 
 ##Building
 To build with Maven, `cd` into the project directory and run `mvn package`.
