@@ -24,13 +24,8 @@ and you will be greeted by a prompt.
 | help    | (none)             | Prints all available commands and their descriptions |
 | exit    | (none)             | Exits the program. Aliases: quit, stop               |
 | ls      | `files...`         | Prints all the subfile paths within `files...`       |
-| find    | `[-r] string file` | Finds all paths in the pak with filename containing the given string. `-r` treats 
-string as a regex. |
-| dump    | `[-ds] [-fr string] src...[*] dest` | Dumps all files in the `src...` paks into the `dest` directory. If a 
-`src` path is terminated by `/*` then the program will attempt to dump all files ending in `.pak`. If `-d` is specified
-, then the output directory will be recursively emptied before dumping after a confirmation prompt. If `-s` is 
-specified, then the `-d` deletion prompt will be suppressed, *and also implies `-d`.* If `-f` is specified, then 
-only files that match will be dumped (see `find` for details). |
+| find    | `[-r] string file` | Finds all paths in the pak with filename containing the given `string`. `-r` treats `string` as a regex. |
+| dump    | `[-ds] [-fr string] src...[*] dest` | Dumps all files in the `src...` paks into the `dest` directory. If a `src` path is terminated by `/*` then the program will attempt to dump all files ending in `.pak`. If `-d` is specified , then the output directory will be recursively emptied before dumping after a confirmation prompt. If `-s` is specified, then the `-d` deletion prompt will be suppressed, **and also implies `-d`.** If `-f` is specified, then only files that match will be dumped (see `find` for details). |
 
 ##Usage (Library)
 Include DNPakTool-1.0-SNAPSHOT.jar in your classpath, or install the library to your local maven repository 
