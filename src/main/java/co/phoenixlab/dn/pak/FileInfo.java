@@ -34,11 +34,9 @@ import static co.phoenixlab.dn.pak.Util.readNulTerminatedStr;
 
 public class FileInfo {
 
-    private static final int NUL_PADDING_SIZE = 40;
     public static final int NAME_BYTES_SIZE = 256;
     public static final int FILE_INFO_SIZE = 316;
 
-    private static final byte[] EMPTY = new byte[NAME_BYTES_SIZE];
 
     private String fullPath;
     private String fileName;
