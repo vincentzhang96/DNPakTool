@@ -24,6 +24,7 @@
 
 package co.phoenixlab.dn.pak;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,10 +37,10 @@ public class DirEntry extends Entry implements Comparable<DirEntry> {
     }
 
     public Map<String, Entry> getChildren() {
-        return children;
+        return Collections.unmodifiableMap(children);
     }
 
-    public FileEntry insert(String path, FileInfo fileInfo) {
+    FileEntry insert(String path, FileInfo fileInfo) {
         if (path.startsWith("\\")) {
             path = path.substring(1);
         }
