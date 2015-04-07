@@ -29,9 +29,8 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 
-import static co.phoenixlab.dn.pak.Util.*;
+import static co.phoenixlab.dn.pak.Util.readNulTerminatedStr;
 
 public class FileInfo {
 
@@ -66,20 +65,6 @@ public class FileInfo {
         diskSize = Integer.toUnsignedLong(buffer.getInt());
         unknown = buffer.getInt();
         return this;
-    }
-
-    public void write(ByteBuffer buffer) {
-        byte[] str = getFullPath().getBytes(StandardCharsets.UTF_8);
-        int pad = NAME_BYTES_SIZE - str.length;
-        buffer.put(str);
-        buffer.put(EMPTY, 0, pad);
-        buffer.putInt((int) diskSize);
-        buffer.putInt((int) decompressedSize);
-        buffer.putInt((int) compressedSize);
-        buffer.putInt((int) diskOffset);
-        buffer.putInt(0x27);    //  I have no idea why, but that's what I saw in a mod and it works for them
-        buffer.put(EMPTY, 0, NUL_PADDING_SIZE);
-        buffer.flip();
     }
 
     @Override
