@@ -25,6 +25,7 @@
 package co.phoenixlab.dn.pak;
 
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -57,7 +58,7 @@ public class PakFile {
      */
     public PakFile(DirEntry root, Map<String, FileEntry> entryMap, PakHeader header, Path path) {
         this.root = root;
-        this.entryMap = entryMap;
+        this.entryMap = Collections.unmodifiableMap(entryMap);
         this.header = header;
         this.path = path;
         numFiles = entryMap.size();
@@ -78,7 +79,7 @@ public class PakFile {
     }
 
     /**
-     * Returns a map view of this PakFile's subfiles.
+     * Returns an immutable map view of this PakFile's subfiles.
      * <p>
      * The keys are the full path of the subfile, such as
      * {@code \resources\foo\bar\baz.txt}. The contents mirror that of the {@code root} DirEntry.
