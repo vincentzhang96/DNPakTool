@@ -56,8 +56,10 @@ public class PakFile {
      * @param header The PakFile header
      * @param path The path to this PakFile (on disk)
      */
-    public PakFile(DirEntry root, Map<String, FileEntry> entryMap, PakHeader header, Path path) {
+    PakFile(DirEntry root, Map<String, FileEntry> entryMap, PakHeader header, Path path) {
         this.root = root;
+        //  NB: entryMap is only made unmodifiable, but by contract with PakFileReader, the backing map is not
+        //  changed once this PakFile is constructed, so it is effectively immutable
         this.entryMap = Collections.unmodifiableMap(entryMap);
         this.header = header;
         this.path = path;
