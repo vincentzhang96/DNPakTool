@@ -27,6 +27,8 @@ package co.phoenixlab.dn.pak;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
 import static co.phoenixlab.dn.pak.Util.*;
@@ -48,17 +50,21 @@ public class FileInfo {
     private int unknown;
 
     public FileInfo load(RandomAccessFile randomAccessFile) throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(FILE_INFO_SIZE);
+        FileChannel fileChannel = randomAccessFile.getChannel();
+        while ((fileChannel.read(buffer)) > 0);
+        buffer.flip();
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
         byte[] nameBytes = new byte[NAME_BYTES_SIZE];
-        randomAccessFile.readFully(nameBytes);
+        buffer.get(nameBytes);
         fullPath = readNulTerminatedStr(nameBytes).substring(1);    //  Remove leading \
         String[] tmp = fullPath.split("\\\\");
         fileName = tmp[tmp.length - 1];
-        diskSize = fromUint32(randomAccessFile.readInt());
-        decompressedSize = fromUint32(randomAccessFile.readInt());
-        compressedSize = fromUint32(randomAccessFile.readInt());
-        diskOffset = fromUint32(randomAccessFile.readInt());
-        unknown = reverseBytes(randomAccessFile.readInt());
-        randomAccessFile.skipBytes(NUL_PADDING_SIZE);
+        diskSize = Integer.toUnsignedLong(buffer.getInt());
+        decompressedSize = Integer.toUnsignedLong(buffer.getInt());
+        compressedSize = Integer.toUnsignedLong(buffer.getInt());
+        diskSize = Integer.toUnsignedLong(buffer.getInt());
+        unknown = buffer.getInt();
         return this;
     }
 
