@@ -25,10 +25,7 @@
 package co.phoenixlab.dn.pak;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.channels.FileChannel;
 
 import static co.phoenixlab.dn.pak.Util.readNulTerminatedStr;
 
@@ -41,8 +38,12 @@ public class FileInfo {
     /**
      * {@value} bytes, the size of a FileInfo on disk.
      */
-    private static final int FILE_INFO_SIZE = 316;
+    static final int FILE_INFO_SIZE = 316;
 
+    /**
+     * {@value} bytes, the padding after the last field.
+     */
+    private static final int PADDING_SIZE = 40;
 
     /** The full path to this file, starting with root (\) */
     private String fullPath;
@@ -62,17 +63,11 @@ public class FileInfo {
     /**
      * Loads a FileInfo from the given RandomAccessFile. The RandomAccessFile's position must be at the start
      * of a valid entry for a successful read. This method returns this FileInfo for convenience for daisy-chaining.
-     * @param randomAccessFile The RandomAccessFile to read from, already positioned at the desired location
+     * @param buffer The ByteBuffer to read from, already positioned at the desired location
      * @return This FileInfo, after its fields have been filled from the data on disk.
      * @throws IOException If an IOException occured during reading from the RandomAccessFile
      */
-    public FileInfo load(RandomAccessFile randomAccessFile) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(FILE_INFO_SIZE);
-        FileChannel fileChannel = randomAccessFile.getChannel();
-        //noinspection StatementWithEmptyBody
-        while ((fileChannel.read(buffer)) > 0);
-        buffer.flip();
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
+    public FileInfo load(ByteBuffer buffer) throws IOException {
         byte[] nameBytes = new byte[NAME_BYTES_SIZE];
         buffer.get(nameBytes);
         fullPath = readNulTerminatedStr(nameBytes).substring(1);    //  Remove leading \
@@ -83,6 +78,8 @@ public class FileInfo {
         compressedSize = Integer.toUnsignedLong(buffer.getInt());
         diskOffset = Integer.toUnsignedLong(buffer.getInt());
         unknown = buffer.getInt();
+        byte[] padding = new byte[PADDING_SIZE];
+        buffer.get(padding);
         return this;
     }
 

@@ -27,6 +27,8 @@ package co.phoenixlab.dn.pak;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -55,11 +57,17 @@ public class PakFileReader {
         header.read(randomAccessFile);
         randomAccessFile.seek(header.getFileTableOffset());
         Map<String, FileEntry> entries = new HashMap<>((int) header.numFiles);
+        long bufSize = header.getNumFiles() * FileInfo.FILE_INFO_SIZE;
+        MappedByteBuffer buffer = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY,
+                randomAccessFile.getFilePointer(),
+                bufSize);
         for (long l = 0; l < header.numFiles; ++l) {
-            FileInfo fileInfo = new FileInfo().load(randomAccessFile);
+            FileInfo fileInfo = new FileInfo().load(buffer);
             FileEntry entry = root.insert(fileInfo.getFullPath(), fileInfo);
             entries.put(fileInfo.getFullPath(), entry);
         }
+        buffer.clear();
+        buffer = null;
         return new PakFile(root, entries, header, path, randomAccessFile);
     }
 }

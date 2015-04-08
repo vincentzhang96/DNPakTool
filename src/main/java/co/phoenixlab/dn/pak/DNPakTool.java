@@ -168,7 +168,7 @@ public class DNPakTool {
             PakFileReader reader = new PakFileReader(path);
             try (PakFile pakFile = reader.load()) {
                 System.out.printf("Read %d files\n", pakFile.getNumFiles());
-                printDirectory(pakFile.getRoot(), 0);
+//                printDirectory(pakFile.getRoot(), 0);
             } catch (IOException e) {
                 System.out.println("Error reading: " + e.toString());
                 e.printStackTrace();
