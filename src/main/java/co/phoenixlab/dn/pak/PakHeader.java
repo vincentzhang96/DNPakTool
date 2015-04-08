@@ -27,7 +27,6 @@ package co.phoenixlab.dn.pak;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import static co.phoenixlab.dn.pak.Util.*;
@@ -70,17 +69,6 @@ public class PakHeader {
         } catch (EOFException eof) {
             throw new InvalidPakException("Unexpected EOF", eof);
         }
-    }
-
-    public void write(ByteBuffer buffer) {
-        int pad = NAME_BYTES_SIZE - MAGIC_WORD_BYTES.length;
-        buffer.put(MAGIC_WORD_BYTES);
-        buffer.put(EMPTY, 0, pad);
-        buffer.putInt(unknown);
-        buffer.putInt((int) numFiles);
-        buffer.putInt((int) fileTableOffset);
-        buffer.put(EMPTY, 0, NUL_PADDING_SIZE);
-        buffer.flip();
     }
 
     public String getMagic() {
