@@ -37,11 +37,11 @@ public class FileInfo {
     /**
      * {@value} bytes, the size of the name field on disk. The name itself may be shorter.
      */
-    public static final int NAME_BYTES_SIZE = 256;
+    private static final int NAME_BYTES_SIZE = 256;
     /**
      * {@value} bytes, the size of a FileInfo on disk.
      */
-    public static final int FILE_INFO_SIZE = 316;
+    private static final int FILE_INFO_SIZE = 316;
 
 
     /** The full path to this file, starting with root (\) */
@@ -80,7 +80,7 @@ public class FileInfo {
         diskSize = Integer.toUnsignedLong(buffer.getInt());
         decompressedSize = Integer.toUnsignedLong(buffer.getInt());
         compressedSize = Integer.toUnsignedLong(buffer.getInt());
-        diskSize = Integer.toUnsignedLong(buffer.getInt());
+        diskOffset = Integer.toUnsignedLong(buffer.getInt());
         unknown = buffer.getInt();
         return this;
     }
