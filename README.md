@@ -42,14 +42,14 @@ Construct a new [`PakFileReader`]
 (https://github.com/vincentzhang96/DNPakTool/blob/master/src/main/java/co/phoenixlab/dn/pak/PakFileReader.java) 
  by passing a valid `Path` to the Pak file and call `PakFileReader.load()`. You may then query the resultant 
  [`PakFile`](https://github.com/vincentzhang96/DNPakTool/blob/master/src/main/java/co/phoenixlab/dn/pak/PakFile.java) 
- for the subfiles. Currently, you are responsible for INFLATEing the data obtained from `PakFileReader.getChannel()` 
- or `PakFileReader.transferTo()`; see [here]
+ for the subfiles. Currently, you are responsible for INFLATEing the data obtained from `PakFile.transferTo()`; see [here]
  (https://github.com/vincentzhang96/DNPakTool/blob/master/src/main/java/co/phoenixlab/dn/pak/DNPakTool.java#L447) 
  for an example on how to do so.
 
 ##To Do
 - [x] Command line interactive mode
 - [x] Command line pass-by-program-argument mode
+- [x] Optimize indexing to be faster using memory mapping
 - [ ] Document everything
 - [ ] Support directory stripping (dump file(s) without creating parent directories)
 - [ ] Provide a simple API for getting the contents of a given subfile
