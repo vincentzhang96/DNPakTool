@@ -28,7 +28,7 @@ import java.io.DataInput;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public class Util {
+class Util {
 
     private Util() {
     }
