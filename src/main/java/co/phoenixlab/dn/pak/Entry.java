@@ -24,6 +24,7 @@
 
 package co.phoenixlab.dn.pak;
 
+@SuppressWarnings("WeakerAccess")
 public abstract class Entry {
 
     public final String name;

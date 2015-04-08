@@ -24,6 +24,7 @@
 
 package co.phoenixlab.dn.pak;
 
+@SuppressWarnings("WeakerAccess")
 public class FileEntry extends Entry implements Comparable<FileEntry> {
 
     private final FileInfo fileInfo;

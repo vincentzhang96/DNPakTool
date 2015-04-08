@@ -69,6 +69,7 @@ public class FileInfo {
     public FileInfo load(RandomAccessFile randomAccessFile) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(FILE_INFO_SIZE);
         FileChannel fileChannel = randomAccessFile.getChannel();
+        //noinspection StatementWithEmptyBody
         while ((fileChannel.read(buffer)) > 0);
         buffer.flip();
         buffer.order(ByteOrder.LITTLE_ENDIAN);

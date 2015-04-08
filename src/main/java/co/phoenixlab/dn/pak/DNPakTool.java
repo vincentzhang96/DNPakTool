@@ -46,6 +46,7 @@ public class DNPakTool {
 
     private static int filesDumped;
     private static Pattern filterPatternCached;
+    @SuppressWarnings({"WeakerAccess", "CanBeFinal"})
     public static long PRINT_INTERVAL = 500L;
     private static final FileVisitor<Path> visitor = new FileVisitor<Path>() {
         @Override
@@ -160,7 +161,6 @@ public class DNPakTool {
             System.out.println("Usage: ls file...");
             return;
         }
-        Runtime runtime = Runtime.getRuntime();
         for (String s : args) {
             Path path = Paths.get(s);
             System.out.println("-- FILE LIST --");

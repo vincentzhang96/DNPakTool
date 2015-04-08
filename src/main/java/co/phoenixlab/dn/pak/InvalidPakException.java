@@ -26,6 +26,7 @@ package co.phoenixlab.dn.pak;
 
 import java.io.IOException;
 
+@SuppressWarnings("WeakerAccess")
 public class InvalidPakException extends IOException {
 
     public InvalidPakException() {
