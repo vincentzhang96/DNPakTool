@@ -24,12 +24,14 @@
 
 package co.phoenixlab.dn.pak;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
-import static co.phoenixlab.dn.pak.Util.*;
+import static co.phoenixlab.dn.pak.Util.readNulTerminatedStr;
 
 public class PakHeader {
 
@@ -47,27 +49,33 @@ public class PakHeader {
     protected long fileTableOffset;
 
     public void read(RandomAccessFile randomAccessFile) throws IOException {
-        try {
-            randomAccessFile.seek(0L);
-            magic = readNulTerminatedStr(randomAccessFile);
-            if (!MAGIC_WORD.equals(magic)) {
-                throw new InvalidPakException("Magic word does not match");
-            }
-            randomAccessFile.seek(0x100L);
-            unknown = reverseBytes(randomAccessFile.readInt());
-            if (unknown != UNKNOWN_CONST) {
-                throw new InvalidPakException("Unknown Const does not match");
-            }
-            numFiles = fromUint32(randomAccessFile.readInt());
-            if (numFiles < 0L || numFiles > 0xFFFFFFFFL) {
-                throw new InvalidPakException(String.format("Invalid number of files: 0x%016X%n", numFiles));
-            }
-            fileTableOffset = fromUint32(randomAccessFile.readInt());
-            if (fileTableOffset < 0x400L || fileTableOffset > 0xFFFFFFFFL) {
-                throw new InvalidPakException(String.format("Invalid file table offset: 0x%016X%n", fileTableOffset));
-            }
-        } catch (EOFException eof) {
-            throw new InvalidPakException("Unexpected EOF", eof);
+        ByteBuffer buffer = ByteBuffer.allocate(HEADER_SIZE);
+        FileChannel fileChannel = randomAccessFile.getChannel();
+        int read;
+        //noinspection StatementWithEmptyBody
+        while ((read = fileChannel.read(buffer)) > 0) ;
+        if (read == -1) {
+            throw new InvalidPakException("Unexpected EOF");
+        }
+        buffer.flip();
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        byte[] magicBytes = new byte[NAME_BYTES_SIZE];
+        buffer.get(magicBytes);
+        magic = readNulTerminatedStr(magicBytes);
+        if (!MAGIC_WORD.equals(magic)) {
+            throw new InvalidPakException("Magic word does not match");
+        }
+        unknown = buffer.getInt();
+        if (unknown != UNKNOWN_CONST) {
+            throw new InvalidPakException("Unknown Const does not match");
+        }
+        numFiles = Integer.toUnsignedLong(buffer.getInt());
+        if (numFiles < 0L || numFiles > 0xFFFFFFFFL) {
+            throw new InvalidPakException(String.format("Invalid number of files: 0x%016X%n", numFiles));
+        }
+        fileTableOffset = Integer.toUnsignedLong(buffer.getInt());
+        if (fileTableOffset < 0x400L || fileTableOffset > 0xFFFFFFFFL) {
+            throw new InvalidPakException(String.format("Invalid file table offset: 0x%016X%n", fileTableOffset));
         }
     }
 
