@@ -27,24 +27,17 @@ package co.phoenixlab.dn.pak;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PakFileReader implements AutoCloseable {
+public class PakFileReader {
 
-    private final PakHeader header;
-    private final DirEntry root;
     private final Path path;
-    private RandomAccessFile randomAccessFile;
 
     public PakFileReader(Path path) {
         this.path = path;
-        header = new PakHeader();
-        root = new DirEntry("\\", null);
     }
 
     public PakFile load() throws IOException {
@@ -55,7 +48,9 @@ public class PakFileReader implements AutoCloseable {
             //  JavaDoc says this is thrown when RAF can't open the file anyways
             throw new FileNotFoundException("The file specified is a directory: " + path.toString());
         }
-        randomAccessFile = new RandomAccessFile(path.toFile(), "r");
+        RandomAccessFile randomAccessFile = new RandomAccessFile(path.toFile(), "r");
+        PakHeader header = new PakHeader();
+        DirEntry root = new DirEntry("\\", null);
         header.read(randomAccessFile);
         randomAccessFile.seek(header.getFileTableOffset());
         Map<String, FileEntry> entries = new HashMap<>((int) header.numFiles);
@@ -64,25 +59,7 @@ public class PakFileReader implements AutoCloseable {
             FileEntry entry = root.insert(fileInfo.getFullPath(), fileInfo);
             entries.put(fileInfo.getFullPath(), entry);
         }
-        return new PakFile(root, entries, header, path);
-    }
-
-    public FileChannel getFileChannel(FileInfo fileInfo) throws IOException {
-        FileChannel fileChannel = randomAccessFile.getChannel();
-        fileChannel.position(fileInfo.getDiskOffset());
-        return fileChannel;
-    }
-
-    public void transferTo(FileInfo fileInfo, WritableByteChannel target) throws IOException {
-        FileChannel fileChannel = getFileChannel(fileInfo);
-        fileChannel.transferTo(fileInfo.getDiskOffset(), fileInfo.getDiskSize(), target);
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (randomAccessFile != null) {
-            randomAccessFile.close();
-        }
+        return new PakFile(root, entries, header, path, randomAccessFile);
     }
 }
 

@@ -24,6 +24,9 @@
 
 package co.phoenixlab.dn.pak;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.WritableByteChannel;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
@@ -34,7 +37,7 @@ import java.util.Map;
  * Instances of PakFile are meant to be constructed through {@link PakFileReader#load()} and not
  * by user code.
  */
-public class PakFile {
+public class PakFile implements AutoCloseable {
 
     /** Path to the file on disk that this PakFile represents */
     private final Path path;
@@ -45,6 +48,8 @@ public class PakFile {
     /** A {@link DirEntry} representing the root directory in the PakFile */
     private final DirEntry root;
     private final int numFiles;
+    /** The RandomAccessFile used to access this PakFile */
+    private RandomAccessFile randomAccessFile;
 
     /**
      * Constructs a PakFile with the given parameters.
@@ -55,8 +60,9 @@ public class PakFile {
      * @param entryMap FileEntries, as a map, mirroring the contents of {@code root}
      * @param header The PakFile header
      * @param path The path to this PakFile (on disk)
+     * @param randomAccessFile The RandomAccessFile for accessing the PakFile
      */
-    PakFile(DirEntry root, Map<String, FileEntry> entryMap, PakHeader header, Path path) {
+    PakFile(DirEntry root, Map<String, FileEntry> entryMap, PakHeader header, Path path, RandomAccessFile randomAccessFile) {
         this.root = root;
         //  NB: entryMap is only made unmodifiable, but by contract with PakFileReader, the backing map is not
         //  changed once this PakFile is constructed, so it is effectively immutable
@@ -64,6 +70,7 @@ public class PakFile {
         this.header = header;
         this.path = path;
         numFiles = entryMap.size();
+        this.randomAccessFile = randomAccessFile;
     }
 
     /**
@@ -113,5 +120,53 @@ public class PakFile {
      */
     public int getNumFiles() {
         return numFiles;
+    }
+
+    /**
+     * Transfers the raw compressed data to the specified target.
+     * <p>
+     * This method will attempt to transfer {@link FileInfo#diskSize} bytes, starting at byte
+     * {@link FileInfo#diskOffset}, to the target. When calling this method, please ensure that there is sufficient
+     * capacity in target
+     * @param fileInfo The FileInfo specifying which entry to retrieve.
+     * @param target A {@code WritableByteChannel} to transfer the data to.
+     * @throws IOException If there was an error transferring the data.
+     */
+    public void transferTo(FileInfo fileInfo, WritableByteChannel target) throws IOException {
+        randomAccessFile.getChannel().transferTo(fileInfo.getDiskOffset(), fileInfo.getDiskSize(), target);
+    }
+
+    /**
+     * Opens the RandomAccessFile used for reading if the current one is not open
+     * @throws IOException If there was an error opening the new one
+     */
+    public void openIfNotOpen() throws IOException {
+        if (randomAccessFile == null) {
+            randomAccessFile = new RandomAccessFile(path.toFile(), "r");
+        }
+    }
+
+    /**
+     * Re-opens the RandomAccessFile used for reading, closing the current one if it is open.
+     * @throws IOException If there was an error closing the previous or opening the new one
+     */
+    public void reopen() throws IOException {
+        if (randomAccessFile != null) {
+            close();
+        }
+        randomAccessFile = new RandomAccessFile(path.toFile(), "r");
+    }
+
+    /**
+     * Closes this PakFile for reading. The PakFile may be re-opened by calling {@link PakFile#openIfNotOpen()} or
+     * {@link PakFile#reopen()}.
+     * @throws IOException If there was an error closing the PakFile.
+     */
+    @Override
+    public void close() throws IOException {
+        RandomAccessFile randomAccessFile = this.randomAccessFile;
+        this.randomAccessFile = null;
+        randomAccessFile.close();
+
     }
 }

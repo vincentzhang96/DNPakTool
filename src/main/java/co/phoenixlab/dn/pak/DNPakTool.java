@@ -165,8 +165,8 @@ public class DNPakTool {
             Path path = Paths.get(s);
             System.out.println("-- FILE LIST --");
             System.out.println(path.toString());
-            try (PakFileReader reader = new PakFileReader(path)) {
-                PakFile pakFile = reader.load();
+            PakFileReader reader = new PakFileReader(path);
+            try (PakFile pakFile = reader.load()) {
                 System.out.printf("Read %d files\n", pakFile.getNumFiles());
                 printDirectory(pakFile.getRoot(), 0);
             } catch (IOException e) {
@@ -266,8 +266,8 @@ public class DNPakTool {
             matcher = s -> s.contains(pattern);
         }
         List<String> ret = new ArrayList<>();
-        try (PakFileReader reader = new PakFileReader(file)) {
-            PakFile pakFile = reader.load();
+        PakFileReader reader = new PakFileReader(file);
+        try (PakFile pakFile = reader.load()) {
             int toRead = pakFile.getNumFiles();
             System.out.printf("Read %d files\n", toRead);
             DirEntry dir = pakFile.getRoot();
@@ -382,8 +382,8 @@ public class DNPakTool {
 
     private static void dumpPak(boolean find, boolean regex, String patternArg, Path source, Path dest) {
         System.out.println("Dumping " + source.toString() + " into " + dest.toString());
-        try (PakFileReader reader = new PakFileReader(source)) {
-            PakFile pakFile = reader.load();
+        PakFileReader reader = new PakFileReader(source);
+        try (PakFile pakFile = reader.load()) {
             int toRead = pakFile.getNumFiles();
             System.out.printf("Read %d files\n", toRead);
             Files.createDirectories(dest);
@@ -402,7 +402,7 @@ public class DNPakTool {
             } else {
                 filter = s -> true;
             }
-            dumpDir(pakFile.getRoot(), dest, reader, toRead, fmt, filter);
+            dumpDir(pakFile.getRoot(), dest, pakFile, toRead, fmt, filter);
             System.out.printf(fmt, 100, filesDumped, toRead, 0, 0);
             System.out.println("\nFiles dumped");
         } catch (IOException e) {
@@ -411,7 +411,7 @@ public class DNPakTool {
         }
     }
 
-    private static void dumpDir(DirEntry dirEntry, Path root, PakFileReader reader, int total, String progressFmt,
+    private static void dumpDir(DirEntry dirEntry, Path root, PakFile pakFile, int total, String progressFmt,
                                 Predicate<String> filter) throws IOException {
         //  It is the previous call's responsibility to create each subdirectory on the FS
         long lastPrintTime = System.currentTimeMillis() - PRINT_INTERVAL;
@@ -422,10 +422,10 @@ public class DNPakTool {
             Path path = root.resolve(entry.name);
             if (entry instanceof DirEntry) {
                 Files.createDirectories(path);
-                dumpDir((DirEntry) entry, path, reader, total, progressFmt, filter);
+                dumpDir((DirEntry) entry, path, pakFile, total, progressFmt, filter);
             } else if (entry instanceof FileEntry) {
                 if (filter.test(entry.name)) {
-                    dumpFile((FileEntry) entry, path, reader);
+                    dumpFile((FileEntry) entry, path, pakFile);
                 }
                 bytesAccum += Files.size(path);
                 ++filesDumped;
@@ -444,11 +444,11 @@ public class DNPakTool {
         }
     }
 
-    private static void dumpFile(FileEntry fileEntry, Path path, PakFileReader reader) throws IOException {
+    private static void dumpFile(FileEntry fileEntry, Path path, PakFile pakFile) throws IOException {
         try (InflaterOutputStream outputStream = new InflaterOutputStream(Files.newOutputStream(path,
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
             WritableByteChannel byteChannel = Channels.newChannel(outputStream);
-            reader.transferTo(fileEntry.getFileInfo(), byteChannel);
+            pakFile.transferTo(fileEntry.getFileInfo(), byteChannel);
             outputStream.flush();
         }
     }
