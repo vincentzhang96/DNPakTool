@@ -46,7 +46,7 @@ Construct a new [`PakFileReader`]
 (https://github.com/vincentzhang96/DNPakTool/blob/master/src/main/java/co/phoenixlab/dn/pak/PakFileReader.java) 
  by passing a valid `Path` to the Pak file and call `PakFileReader.load()`. You may then query the resultant 
  [`PakFile`](https://github.com/vincentzhang96/DNPakTool/blob/master/src/main/java/co/phoenixlab/dn/pak/PakFile.java) 
- for the subfiles. Currently, you are responsible for INFLATEing the data obtained from `PakFile.transferTo()`; see [here]
+ for the subfiles. Currently, you are responsible for [INFLATE](https://docs.oracle.com/javase/7/docs/api/java/util/zip/Inflater.html)ing the data obtained from `PakFile.transferTo()`; see [here]
  (https://github.com/vincentzhang96/DNPakTool/blob/master/src/main/java/co/phoenixlab/dn/pak/DNPakTool.java#L447) 
  for an example on how to do so.
 
