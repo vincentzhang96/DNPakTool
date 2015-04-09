@@ -1,8 +1,12 @@
 DNPakTool
 ========
+[![Build Status](https://travis-ci.org/vincentzhang96/DNPakTool.svg)](https://travis-ci.org/vincentzhang96/DNPakTool)
 
 A simple command line tool for listing, extracting, and searching Eyedentity/Dragon Nest resource pak files, as well 
 as a Java library for reading and processing them.
+
+##Download
+You may download the latest stable release [here](https://github.com/vincentzhang96/DNPakTool/releases/latest).
 
 ##Usage (Command Line)
 DNPakTool may be used in an interactive shell-like manner or through startup arguments. The commands and arguments are 
@@ -49,7 +53,7 @@ Construct a new [`PakFileReader`]
 ##To Do
 - [x] Command line interactive mode
 - [x] Command line pass-by-program-argument mode
-- [ ] Document everything
+- [x] Document everything
 - [ ] Support directory stripping (dump file(s) without creating parent directories)
 - [ ] Provide a simple API for getting the contents of a given subfile
 
