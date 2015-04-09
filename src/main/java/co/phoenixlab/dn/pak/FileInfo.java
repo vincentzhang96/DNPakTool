@@ -24,7 +24,6 @@
 
 package co.phoenixlab.dn.pak;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import static co.phoenixlab.dn.pak.Util.readNulTerminatedStr;
@@ -65,9 +64,8 @@ public class FileInfo {
      * of a valid entry for a successful read. This method returns this FileInfo for convenience for daisy-chaining.
      * @param buffer The ByteBuffer to read from, already positioned at the desired location
      * @return This FileInfo, after its fields have been filled from the data on disk.
-     * @throws IOException If an IOException occured during reading from the RandomAccessFile
      */
-    public FileInfo load(ByteBuffer buffer) throws IOException {
+    public FileInfo load(ByteBuffer buffer) {
         byte[] nameBytes = new byte[NAME_BYTES_SIZE];
         buffer.get(nameBytes);
         fullPath = readNulTerminatedStr(nameBytes).substring(1);    //  Remove leading \
