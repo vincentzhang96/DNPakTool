@@ -28,18 +28,44 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents a directory in a PakFile. A DirEntry may contain other DirEntries and FileEntries.
+ */
 public class DirEntry extends Entry implements Comparable<DirEntry> {
 
+    /** This DirEntry's children, can contain DirEntries and FileEntries */
     private final Map<String, Entry> children = new HashMap<>();
 
+    /**
+     * Constructs a DirEntry with the given name and parent. If the parent is null, then this is a root entry/node.
+     * @param name The name of this DirEntry
+     * @param parent The parent that contains this DirEntry, or null if this DirEntry is the root entry
+     */
     public DirEntry(String name, Entry parent) {
         super(name, parent);
     }
 
+    /**
+     * Returns an unmodifiable map view of this DirEntry's children. After a PakFile is fully loaded and
+     * indexed, the children do not change and for all intents and purposes may be considered immutable.
+     * @return An unmodifiable map view of this DirEntry's children.
+     */
     public Map<String, Entry> getChildren() {
         return Collections.unmodifiableMap(children);
     }
 
+    /**
+     * Recursively inserts a FileInfo into a FileEntry in the proper DirEntry.
+     * <p>
+     * For instance, given the path "\a\b\c", this method will get or create a DirEntry with the name "a" and call
+     * {@code a.insert("\b\c", fileInfo)}. Once at "b", "b" will then construct a FileEntry with the given FileInfo
+     * and add it as a child, finishing the recursive insert operation.
+     * <p>
+     * The leading backslash is optional.
+     * @param path The path to the desired insertion point, relative to this DirEntry
+     * @param fileInfo The FileInfo to insert into a FileEntry once at its proper DirEntry
+     * @return The FileEntry that was inserted
+     */
     FileEntry insert(String path, FileInfo fileInfo) {
         if (path.startsWith("\\")) {
             path = path.substring(1);
@@ -63,6 +89,19 @@ public class DirEntry extends Entry implements Comparable<DirEntry> {
         return dirEntry.insert(strs[1], fileInfo);
     }
 
+    /**
+     * Recursively gets the specified Entry at path.
+     * <p>
+     * For instance, given the path "\a\b\c", this method will find the child entry named "a". If "a" is a DirEntry,
+     * then it will call {@code a.get("\b\c"}. If "a" is not a DirEntry, then the method will fail with an
+     * {@code IllegalArgumentException}. Once at "b", "b" will then return whatever "c" is: a DirEntry, a FileEntry, or
+     * null (item does not exist).
+     * <p>
+     * The leading backslash is optional.
+     * @param path The path to the entry, relative to this DirEntry
+     * @return The Entry at path relative to this DirEntry, or null if no such entry exists
+     * @throws IllegalArgumentException If the path requests the child of a file/leaf.
+     */
     public Entry get(String path) {
         if (path.startsWith("\\")) {
             path = path.substring(1);
