@@ -34,12 +34,31 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A PakFileReader is the primary way to load and obtain a {@link PakFile}. Instances of this class may be used
+ * to load a PakFile from a disk location via {@link PakFileReader#load(Path)}. Instances may be reused to load
+ * multiple PakFiles.
+ */
 @SuppressWarnings("WeakerAccess")
 public class PakFileReader {
 
+    /**
+     * Constructs a new PakFileReader for reading PakFiles. Instances are reusable.
+     */
     public PakFileReader() {
     }
 
+    /**
+     * Loads a PakFile from the given {@code Path}.
+     * <p>
+     * Note that this method opens a RandomAccessFile to read the PakFile but does not close it.
+     * Care must be taken to close() on the <b>returned PakFile</b> to release the file. See {@link PakFile#close()}.
+     * @param path The Path to the PakFile to load
+     * @return A PakFile read from the given path, in the open state. See {@link PakFile}.
+     * @throws FileNotFoundException If the given path does not exist or is a directory
+     * @throws InvalidPakException If the given path points to a file that is not a valid PakFile
+     * @throws IOException If there was an error reading the PakFile
+     */
     public PakFile load(Path path) throws IOException {
         if (Files.notExists(path)) {
             throw new FileNotFoundException("The file does not exist: " + path.toString());
