@@ -165,8 +165,8 @@ public class DNPakTool {
             Path path = Paths.get(s);
             System.out.println("-- FILE LIST --");
             System.out.println(path.toString());
-            PakFileReader reader = new PakFileReader(path);
-            try (PakFile pakFile = reader.load()) {
+            PakFileReader reader = new PakFileReader();
+            try (PakFile pakFile = reader.load(path)) {
                 System.out.printf("Read %d files\n", pakFile.getNumFiles());
                 printDirectory(pakFile.getRoot(), 0);
             } catch (IOException e) {
@@ -266,8 +266,8 @@ public class DNPakTool {
             matcher = s -> s.contains(pattern);
         }
         List<String> ret = new ArrayList<>();
-        PakFileReader reader = new PakFileReader(file);
-        try (PakFile pakFile = reader.load()) {
+        PakFileReader reader = new PakFileReader();
+        try (PakFile pakFile = reader.load(file)) {
             int toRead = pakFile.getNumFiles();
             System.out.printf("Read %d files\n", toRead);
             DirEntry dir = pakFile.getRoot();
@@ -382,8 +382,8 @@ public class DNPakTool {
 
     private static void dumpPak(boolean find, boolean regex, String patternArg, Path source, Path dest) {
         System.out.println("Dumping " + source.toString() + " into " + dest.toString());
-        PakFileReader reader = new PakFileReader(source);
-        try (PakFile pakFile = reader.load()) {
+        PakFileReader reader = new PakFileReader();
+        try (PakFile pakFile = reader.load(source)) {
             int toRead = pakFile.getNumFiles();
             System.out.printf("Read %d files\n", toRead);
             Files.createDirectories(dest);

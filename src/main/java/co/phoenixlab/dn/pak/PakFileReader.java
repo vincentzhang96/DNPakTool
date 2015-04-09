@@ -37,13 +37,10 @@ import java.util.Map;
 @SuppressWarnings("WeakerAccess")
 public class PakFileReader {
 
-    private final Path path;
-
-    public PakFileReader(Path path) {
-        this.path = path;
+    public PakFileReader() {
     }
 
-    public PakFile load() throws IOException {
+    public PakFile load(Path path) throws IOException {
         if (Files.notExists(path)) {
             throw new FileNotFoundException("The file does not exist: " + path.toString());
         }
