@@ -24,12 +24,23 @@
 
 package co.phoenixlab.dn.pak;
 
+/**
+ * Represents a generic entry in the PakFile file structure.
+ */
 @SuppressWarnings("WeakerAccess")
 public abstract class Entry {
 
+    /** The name of this Entry. This is NOT the full path */
     public final String name;
+    /** The Entry that "owns" or contains this Entry */
     public final Entry parent;
 
+    /**
+     * Constructs an Entry with given name and parent. The parent cannot be a FileEntry.
+     * @param name The name for this Entry
+     * @param parent The parent for this Entry, cannot be a FileEntry
+     * @throws IllegalArgumentException If the parent is a FileEntry
+     */
     public Entry(String name, Entry parent) {
         this.name = name;
         this.parent = parent;
