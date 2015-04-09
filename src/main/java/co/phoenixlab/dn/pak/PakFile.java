@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * Represents a pak file, providing access to its header information and file entries.
  * <p>
- * Instances of PakFile are meant to be constructed through {@link PakFileReader#load()} and not
+ * Instances of PakFile are meant to be constructed through {@link PakFileReader#load(Path)} and not
  * by user code.
  */
 public class PakFile implements AutoCloseable {
@@ -54,7 +54,7 @@ public class PakFile implements AutoCloseable {
     /**
      * Constructs a PakFile with the given parameters.
      * <p>
-     * This constructor is primarily intended for use by {@link PakFileReader#load()}. Please use that instead
+     * This constructor is primarily intended for use by {@link PakFileReader#load(Path)}. Please use that instead
      * of manually instantiating this.
      * @param root The DirEntry representing the root directory in the PakFile
      * @param entryMap FileEntries, as a map, mirroring the contents of {@code root}
@@ -127,7 +127,7 @@ public class PakFile implements AutoCloseable {
      * <p>
      * This method will attempt to transfer {@link FileInfo#diskSize} bytes, starting at byte
      * {@link FileInfo#diskOffset}, to the target. When calling this method, please ensure that there is sufficient
-     * capacity in target
+     * capacity in the target channel and that the PakFile is open. See {@link PakFile#openIfNotOpen()}.
      * @param fileInfo The FileInfo specifying which entry to retrieve.
      * @param target A {@code WritableByteChannel} to transfer the data to.
      * @throws IOException If there was an error transferring the data.
