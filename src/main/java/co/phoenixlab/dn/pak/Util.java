@@ -51,17 +51,4 @@ class Util {
         System.arraycopy(data, 0, subarray, 0, len);
         return new String(subarray, StandardCharsets.UTF_8);
     }
-
-    public static long fromUint32(int i) {
-        return Integer.toUnsignedLong(reverseBytes(i));
-    }
-
-    public static int reverseBytes(int i) {
-        return ((i & 0xFF) << 24) | ((i & 0xFF00) << 8 | ((i & 0xFF0000) >>> 8) | ((i & 0xFF000000) >>> 24));
-    }
-
-    public static int toUint32(long l) {
-        return reverseBytes((int) l);
-    }
-
 }
