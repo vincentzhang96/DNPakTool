@@ -24,8 +24,6 @@
 
 package co.phoenixlab.dn.pak;
 
-import java.io.DataInput;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 class Util {
@@ -33,18 +31,9 @@ class Util {
     private Util() {
     }
 
-    public static String readNulTerminatedStr(DataInput dataIn) throws IOException {
-        StringBuilder builder = new StringBuilder();
-        int i;
-        while ((i = dataIn.readUnsignedByte()) > 0) {
-            builder.append((char) i);
-        }
-        return builder.toString();
-    }
-
     public static String readNulTerminatedStr(byte[] data) {
         int len = 0;
-        while (data[len] != 0) {
+        while (len < data.length && data[len] != 0) {
             ++len;
         }
         byte[] subarray = new byte[len];
