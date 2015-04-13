@@ -134,7 +134,7 @@ public class DNPakTool {
                 dump(args);
                 break;
             case "continuty":
-                continuity();
+                continuity(args);
                 break;
             default:
                 System.out.println("Unknown command. Try \"help\" for a list of a commands");
@@ -456,14 +456,16 @@ public class DNPakTool {
         }
     }
 
-    private static void continuity(String[] args) throws IOException {
+    private static void continuity(String[] args) {
         String pathStr = args[0];
         Path path = Paths.get(pathStr);
         PakFileReader reader = new PakFileReader();
         try (PakFile pakFile = reader.load(path)) {
+
+
+
+        } catch (IOException e) {
             
-
-
         }
     }
 }
