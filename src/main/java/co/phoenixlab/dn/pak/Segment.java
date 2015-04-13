@@ -24,5 +24,75 @@
 
 package co.phoenixlab.dn.pak;
 
-class Segment {
+class Segment implements Comparable<Segment> {
+
+    final long start;
+    final long length;
+    final long end;
+
+    Segment(long start, long length, long end) {
+        if (start == -1) {
+            this.start = end - length;
+            this.length = length;
+            this.end = end;
+        } else if (length == -1) {
+            this.start = start;
+            this.length = end - start;
+            this.end = end;
+        } else if (end == -1) {
+            this.start = start;
+            this.length = length;
+            this.end = start + length;
+        } else {
+            this.start = start;
+            this.length = length;
+            this.end = end;
+        }
+    }
+
+    public Segment merge(Segment other) {
+        if (other == null) {
+            return null;
+        }
+        if (start <= other.start && end >= other.start) {
+            return new Segment(start, -1, Math.max(end, other.end));
+        }
+        if (other.start <= start && other.end >= start) {
+            return new Segment(other.start, -1, Math.max(end, other.end));
+        }
+        return null;
+    }
+
+    @Override
+    public int compareTo(Segment o) {
+        return Long.compareUnsigned(start, o.start);
+    }
+
+    @Override
+    public String toString() {
+        return start + "\t" + end;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Segment segment = (Segment) o;
+
+        return start == segment.start && length == segment.length && end == segment.end;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (start ^ (start >>> 32));
+        result = 31 * result + (int) (length ^ (length >>> 32));
+        result = 31 * result + (int) (end ^ (end >>> 32));
+        return result;
+    }
 }

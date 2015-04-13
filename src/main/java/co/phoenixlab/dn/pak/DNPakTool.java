@@ -29,13 +29,11 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.InflaterOutputStream;
 
@@ -133,7 +131,7 @@ public class DNPakTool {
             case "dump":
                 dump(args);
                 break;
-            case "continuty":
+            case "cont":
                 continuity(args);
                 break;
             default:
@@ -461,11 +459,43 @@ public class DNPakTool {
         Path path = Paths.get(pathStr);
         PakFileReader reader = new PakFileReader();
         try (PakFile pakFile = reader.load(path)) {
-
-
-
+            List<Segment> segments = pakFile.getEntryMap().values().stream().
+                    map(FileEntry::getFileInfo).
+                    map(fi -> new Segment(fi.getDiskOffset(), fi.getDiskSize(), -1)).
+                    sorted().
+                    collect(Collectors.toList());
+            Stack<Segment> stack = new Stack<>();
+            segments.forEach(stack::push);
+            long diff = 0;
+            int len = segments.size() - 1;
+            for (int i = 0; i < len; i++) {
+                Segment segment = segments.get(i);
+                Segment next = segments.get(i + 1);
+                diff += next.start - segment.end;
+            }
+            System.out.println(diff);
+            List<Segment> done = new ArrayList<>(segments.size());
+            while (!stack.isEmpty()) {
+                Segment segment = stack.pop();
+                if (stack.isEmpty()) {
+                    done.add(segment);
+                    break;
+                }
+                Segment next = stack.peek();
+                Segment comb = segment.merge(next);
+                if (comb != null) {
+                    stack.pop();
+                    stack.push(comb);
+                } else {
+                    done.add(segment);
+                }
+            }
+            Collections.reverse(done);
+            done.stream().
+                    map(Segment::toString).
+                    forEach(System.out::println);
         } catch (IOException e) {
-            
+            e.printStackTrace();
         }
     }
 }
