@@ -26,15 +26,59 @@ package co.phoenixlab.dn.pak;
 
 import org.junit.*;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
 public class UtilTest {
 
     @Test
     public void testReadNulTerminatedStr() throws Exception {
+        String string = "This is a short string.";
+        byte[] bytes = new byte[256];
+        byte[] working;
+        String ret;
 
+        Arrays.fill(bytes, (byte) 0);
+        working = string.getBytes(StandardCharsets.UTF_8);
+        System.arraycopy(working, 0, bytes, 0, working.length);
+        ret = Util.readNulTerminatedStr(bytes);
+        Assert.assertEquals(string, ret);
     }
 
     @Test
-    public void testReadNulTerminatedStr1() throws Exception {
+    public void testReadNulTerminatedStrWithEmptyStr() throws Exception {
+        byte[] bytes = new byte[256];
+        String ret;
 
+        Arrays.fill(bytes, (byte) 0);
+        ret = Util.readNulTerminatedStr(bytes);
+        Assert.assertTrue(ret.isEmpty());
+    }
+
+    @Test
+    public void testReadNulTerminatedStrWithStrWithNull() throws Exception {
+        String string = "This is a short string.";
+        String nulString = string + "\0\0\0" + "moo";
+        byte[] bytes = new byte[256];
+        byte[] working;
+        String ret;
+
+        Arrays.fill(bytes, (byte) 0);
+        working = nulString.getBytes(StandardCharsets.UTF_8);
+        System.arraycopy(working, 0, bytes, 0, working.length);
+        ret = Util.readNulTerminatedStr(bytes);
+        Assert.assertEquals(string, ret);
+    }
+
+    @Test
+    public void testReadNulTerminatedStrEndOfArray() throws Exception {
+        byte[] bytes = new byte[256];
+        byte[] working;
+        String ret;
+
+        Arrays.fill(bytes, (byte) 'a');
+        ret = Util.readNulTerminatedStr(bytes);
+        working = ret.getBytes(StandardCharsets.UTF_8);
+        Assert.assertArrayEquals(bytes, working);
     }
 }
