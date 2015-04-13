@@ -133,6 +133,9 @@ public class DNPakTool {
             case "dump":
                 dump(args);
                 break;
+            case "continuty":
+                continuity();
+                break;
             default:
                 System.out.println("Unknown command. Try \"help\" for a list of a commands");
         }
@@ -450,6 +453,17 @@ public class DNPakTool {
             WritableByteChannel byteChannel = Channels.newChannel(outputStream);
             pakFile.transferTo(fileEntry.getFileInfo(), byteChannel);
             outputStream.flush();
+        }
+    }
+
+    private static void continuity(String[] args) throws IOException {
+        String pathStr = args[0];
+        Path path = Paths.get(pathStr);
+        PakFileReader reader = new PakFileReader();
+        try (PakFile pakFile = reader.load(path)) {
+            
+
+
         }
     }
 }
