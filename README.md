@@ -14,7 +14,7 @@ the same.
 
 To run a command, 
 ```
-java -jar DMPakTool-1.0.1.jar command args...
+java -jar DNPakTool-1.0.1.jar command args...
 ```
 
 To launch in interactive mode, simply pass no arguments as such:
