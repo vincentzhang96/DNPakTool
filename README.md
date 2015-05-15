@@ -1,6 +1,8 @@
 DNPakTool
 ========
-[![Build Status](https://travis-ci.org/vincentzhang96/DNPakTool.svg)](https://travis-ci.org/vincentzhang96/DNPakTool)
+[![GitHub release](https://img.shields.io/github/release/vincentzhang96/DNPakTool.svg?style=flat-square)](https://github.com/vincentzhang96/DNPakTool/releases/latest)
+[![Travis](https://img.shields.io/travis/vincentzhang96/DNPakTool.svg?style=flat-square)](https://travis-ci.org/vincentzhang96/DNPakTool)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/vincentzhang96/DNPakTool#license)
 
 A simple command line tool for listing, extracting, and searching Eyedentity/Dragon Nest resource pak files, as well 
 as a Java library for reading and processing them.
