@@ -171,8 +171,8 @@ public class DNPakTool {
                 System.out.printf("Read %d files\n", pakFile.getNumFiles());
                 printDirectory(pakFile.getRoot(), 0);
             } catch (IOException e) {
-                System.out.println("Error reading: " + e.toString());
-                e.printStackTrace();
+                System.err.println("Error reading: " + e.toString());
+                e.printStackTrace(System.err);
             }
             System.out.println("---------------");
             System.gc();
@@ -274,8 +274,8 @@ public class DNPakTool {
             DirEntry dir = pakFile.getRoot();
             searchDir(dir, ret, matcher);
         } catch (IOException e) {
-            System.out.println("Error searching: " + e.toString());
-            e.printStackTrace();
+            System.err.printf("Error searching %s:%n", file.toString());
+            e.printStackTrace(System.err);
         }
         return ret;
     }
@@ -351,8 +351,8 @@ public class DNPakTool {
                     stream.filter(p -> p.getFileName().toString().endsWith(".pak")).
                             forEach(path -> dumpPak(useFilter, useRegex, filterArg, path, dest));
                 } catch (IOException e) {
-                    System.out.println("Error dumping: " + e.toString());
-                    e.printStackTrace();
+                    System.err.printf("Error while dumping %s:%n", src);
+                    e.printStackTrace(System.err);
                 }
             } else {
                 dumpPak(useFilter, useRegex, filterArg, Paths.get(src), dest);
@@ -375,7 +375,7 @@ public class DNPakTool {
             try {
                 Files.walkFileTree(dest, visitor);
             } catch (IOException e) {
-                System.out.println("Unable to clean output directory");
+                System.err.println("Error: Unable to clean output directory");
             }
         }
         return false;
@@ -407,8 +407,8 @@ public class DNPakTool {
             System.out.printf(fmt, 100, filesDumped, toRead, 0, 0);
             System.out.println("\nFiles dumped");
         } catch (IOException e) {
-            System.out.println("Error dumping: " + e.toString());
-            e.printStackTrace();
+            System.err.println("Error dumping: " + e.toString());
+            e.printStackTrace(System.err);
         }
     }
 
@@ -495,7 +495,8 @@ public class DNPakTool {
                     map(Segment::toString).
                     forEach(System.out::println);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error performing continuity test:");
+            e.printStackTrace(System.err);
         }
     }
 }
