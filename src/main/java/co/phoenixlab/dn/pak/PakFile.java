@@ -69,7 +69,7 @@ public class PakFile implements AutoCloseable {
         this.entryMap = Collections.unmodifiableMap(entryMap);
         this.header = header;
         this.path = path;
-        numFiles = entryMap.size();
+        this.numFiles = entryMap.size();
         this.randomAccessFile = randomAccessFile;
     }
 

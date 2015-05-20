@@ -27,6 +27,7 @@ package co.phoenixlab.dn.pak;
 import java.nio.ByteBuffer;
 
 import static co.phoenixlab.dn.pak.Util.readNulTerminatedStr;
+import static java.lang.Integer.*;
 
 public class FileInfo {
 
@@ -71,10 +72,10 @@ public class FileInfo {
         fullPath = readNulTerminatedStr(nameBytes).substring(1);    //  Remove leading \
         String[] tmp = fullPath.split("\\\\");
         fileName = tmp[tmp.length - 1];
-        diskSize = Integer.toUnsignedLong(buffer.getInt());
-        decompressedSize = Integer.toUnsignedLong(buffer.getInt());
-        compressedSize = Integer.toUnsignedLong(buffer.getInt());
-        diskOffset = Integer.toUnsignedLong(buffer.getInt());
+        diskSize = toUnsignedLong(buffer.getInt());
+        decompressedSize = toUnsignedLong(buffer.getInt());
+        compressedSize = toUnsignedLong(buffer.getInt());
+        diskOffset = toUnsignedLong(buffer.getInt());
         unknown = buffer.getInt();
         byte[] padding = new byte[PADDING_SIZE];
         buffer.get(padding);

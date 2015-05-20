@@ -337,10 +337,8 @@ public class DNPakTool {
             return;
         }
         Path dest = Paths.get(files.remove(files.size() - 1)).toAbsolutePath().normalize();
-        if (delete) {
-            if (deleteDir(suppress, dest)) {
-                return;
-            }
+        if (delete && deleteDir(suppress, dest)) {
+            return;
         }
         final boolean useFilter = find;
         final boolean useRegex = regex;
@@ -469,9 +467,7 @@ public class DNPakTool {
             long diff = 0;
             int len = segments.size() - 1;
             for (int i = 0; i < len; i++) {
-                Segment segment = segments.get(i);
-                Segment next = segments.get(i + 1);
-                diff += next.start - segment.end;
+                diff += segments.get(i + 1).start - segments.get(i).end;
             }
             System.out.println(diff);
             List<Segment> done = new ArrayList<>(segments.size());

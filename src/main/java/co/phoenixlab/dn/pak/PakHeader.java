@@ -31,6 +31,7 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 
 import static co.phoenixlab.dn.pak.Util.readNulTerminatedStr;
+import static java.lang.Integer.*;
 
 public class PakHeader {
 
@@ -90,11 +91,11 @@ public class PakHeader {
         if (unknown != UNKNOWN_CONST) {
             throw new InvalidPakException("Unknown Const does not match");
         }
-        numFiles = Integer.toUnsignedLong(buffer.getInt());
+        numFiles = toUnsignedLong(buffer.getInt());
         if (numFiles < 0L || numFiles > 0xFFFFFFFFL) {
             throw new InvalidPakException(String.format("Invalid number of files: 0x%016X%n", numFiles));
         }
-        fileTableOffset = Integer.toUnsignedLong(buffer.getInt());
+        fileTableOffset = toUnsignedLong(buffer.getInt());
         if (fileTableOffset < 0x400L || fileTableOffset > 0xFFFFFFFFL) {
             throw new InvalidPakException(String.format("Invalid file table offset: 0x%016X%n", fileTableOffset));
         }
