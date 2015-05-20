@@ -1,6 +1,7 @@
 language: java
 jdk:
 - oraclejdk8
+script: mvn test package
 deploy:
   provider: releases
   api_key:
