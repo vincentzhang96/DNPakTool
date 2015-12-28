@@ -69,7 +69,10 @@ public class FileInfo {
     public FileInfo load(ByteBuffer buffer) {
         byte[] nameBytes = new byte[NAME_BYTES_SIZE];
         buffer.get(nameBytes);
-        fullPath = readNulTerminatedStr(nameBytes).substring(1);    //  Remove leading \
+        fullPath = readNulTerminatedStr(nameBytes);
+        if (fullPath.length() > 0) {
+            fullPath = fullPath.substring(1);   //  Remove leading backslash
+        }
         String[] tmp = fullPath.split("\\\\");
         fileName = tmp[tmp.length - 1];
         diskSize = toUnsignedLong(buffer.getInt());
