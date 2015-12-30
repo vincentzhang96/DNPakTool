@@ -133,7 +133,8 @@ public class PakFile implements AutoCloseable {
      * @throws IOException If there was an error transferring the data.
      */
     public void transferTo(FileInfo fileInfo, WritableByteChannel target) throws IOException {
-        randomAccessFile.getChannel().transferTo(fileInfo.getDiskOffset(), fileInfo.getDiskSize(), target);
+        randomAccessFile.getChannel().transferTo(fileInfo.getDiskOffset(),
+                Math.max(fileInfo.getCompressedSize(), fileInfo.getDiskSize()), target);
     }
 
     /**
