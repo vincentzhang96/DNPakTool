@@ -16,12 +16,12 @@ the same.
 
 To run a command, 
 ```
-java -jar DNPakTool-1.0.2.jar command args...
+java -jar DNPakTool-1.0.3.jar command args...
 ```
 
 To launch in interactive mode, simply pass no arguments as such:
 ```
-java -jar DNPakTool-1.0.2.jar
+java -jar DNPakTool-1.0.3.jar
 ```
 and you will be greeted by a prompt.
 
@@ -34,13 +34,13 @@ and you will be greeted by a prompt.
 | dump    | `[-ds] [-fr string] src...[*] dest` | Dumps all files in the `src...` paks into the `dest` directory. If a `src` path is terminated by `/*` then the program will attempt to dump all files ending in `.pak`. If `-d` is specified , then the output directory will be recursively emptied before dumping after a confirmation prompt. If `-s` is specified, then the `-d` deletion prompt will be suppressed, **and also implies `-d`.** If `-f` is specified, then only files that match will be dumped (see `find` for details). |
 
 ##Usage (Library)
-Include DNPakTool-1.0.2.jar in your classpath, or install the library to your local maven repository 
+Include DNPakTool-1.0.3.jar in your classpath, or install the library to your local maven repository 
 via `mvn install` and adding to your pom.xml 
 ```xml
 <dependency>
     <groupId>co.phoenixlab.dn</groupId>
     <artifactId>DNPakTool</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 </dependency>
 ```
 ###Loading a pak file
