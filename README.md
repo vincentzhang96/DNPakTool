@@ -16,12 +16,12 @@ the same.
 
 To run a command, 
 ```
-java -jar DNPakTool-1.0.4.jar command args...
+java -jar DNPakTool-1.0.5.jar command args...
 ```
 
 To launch in interactive mode, simply pass no arguments as such:
 ```
-java -jar DNPakTool-1.0.4.jar
+java -jar DNPakTool-1.0.5.jar
 ```
 and you will be greeted by a prompt.
 
@@ -40,7 +40,7 @@ via `mvn install` and adding to your pom.xml
 <dependency>
     <groupId>co.phoenixlab.dn</groupId>
     <artifactId>DNPakTool</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
 </dependency>
 ```
 ###Loading a pak file

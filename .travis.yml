@@ -6,7 +6,7 @@ deploy:
   provider: releases
   api_key:
     secure: DDCNP5/lcx9YWKienHuFU2+b/acibAKdIddGMXMBvperNzr8GmNDpyoSFiTGVDl2SDE86eZoDMvCCXbu2lBdKsy3LPZo4Gbqlom5GtcnMPy/88xEM95NHgBLYOAE5vRkDQbbuDtYO2U6rve00PL36QxrfeAryHu4P3M3CSixw24=
-  file: "target/DNPakTool-1.0.4.jar"
+  file: "target/DNPakTool-1.0.5.jar"
   skip_cleanup: true
   on:
     tags: true

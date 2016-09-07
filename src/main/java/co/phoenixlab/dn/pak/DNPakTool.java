@@ -420,15 +420,15 @@ public class DNPakTool {
         for (Entry entry : dirEntry.getChildren().values()) {
             Path path = root.resolve(entry.name);
             if (entry instanceof DirEntry) {
-                Files.createDirectories(path);
+                //  Don't create the dir - we'll delegate that to the file dumper
                 dumpDir((DirEntry) entry, path, pakFile, total, progressFmt, filter);
             } else if (entry instanceof FileEntry) {
                 //  Check for invalid
                 FileEntry fe = (FileEntry) entry;
                 if (isValid(fe) && filter.test(entry.name)) {
                     dumpFile((FileEntry) entry, path, pakFile);
+                    bytesAccum += Files.size(path);
                 }
-                bytesAccum += Files.size(path);
                 ++filesDumped;
                 ++filesAccum;
                 long time = System.currentTimeMillis();
@@ -451,6 +451,7 @@ public class DNPakTool {
     }
 
     private static void dumpFile(FileEntry fileEntry, Path path, PakFile pakFile) throws IOException {
+        Files.createDirectories(path.getParent());
         try (InflaterOutputStream outputStream = new InflaterOutputStream(Files.newOutputStream(path,
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
             WritableByteChannel byteChannel = Channels.newChannel(outputStream);
