@@ -423,7 +423,9 @@ public class DNPakTool {
                 Files.createDirectories(path);
                 dumpDir((DirEntry) entry, path, pakFile, total, progressFmt, filter);
             } else if (entry instanceof FileEntry) {
-                if (filter.test(entry.name)) {
+                //  Check for invalid
+                FileEntry fe = (FileEntry) entry;
+                if (isValid(fe) && filter.test(entry.name)) {
                     dumpFile((FileEntry) entry, path, pakFile);
                 }
                 bytesAccum += Files.size(path);
@@ -441,6 +443,11 @@ public class DNPakTool {
                 }
             }
         }
+    }
+
+    private static boolean isValid(FileEntry fileEntry) {
+        FileInfo fileInfo = fileEntry.getFileInfo();
+        return fileInfo.getDiskSize() != 0 && fileInfo.getDecompressedSize() != 0;
     }
 
     private static void dumpFile(FileEntry fileEntry, Path path, PakFile pakFile) throws IOException {
