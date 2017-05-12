@@ -175,4 +175,24 @@ public class FileInfo {
     void setFileName(String fileName) {
         this.fileName = fileName;
     }
+
+    void setDiskSize(long diskSize) {
+        this.diskSize = diskSize;
+    }
+
+    void setDecompressedSize(long decompressedSize) {
+        this.decompressedSize = decompressedSize;
+    }
+
+    void setCompressedSize(long compressedSize) {
+        this.compressedSize = compressedSize;
+    }
+
+    void setDiskOffset(long diskOffset) {
+        this.diskOffset = diskOffset;
+    }
+
+    void setUnknown(int unknown) {
+        this.unknown = unknown;
+    }
 }

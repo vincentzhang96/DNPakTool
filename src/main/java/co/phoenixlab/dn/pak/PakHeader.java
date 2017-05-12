@@ -84,9 +84,9 @@ public class PakHeader {
         byte[] magicBytes = new byte[MAGIC_WORD_SIZE];
         buffer.get(magicBytes);
         magic = readNulTerminatedStr(magicBytes);
-        if (!MAGIC_WORD.equals(magic)) {
-            throw new InvalidPakException("Magic word does not match");
-        }
+//        if (!MAGIC_WORD.equals(magic)) {
+//            throw new InvalidPakException("Magic word does not match");
+//        }
         unknown = buffer.getInt();
         if (unknown != UNKNOWN_CONST) {
             throw new InvalidPakException("Unknown Const does not match");
